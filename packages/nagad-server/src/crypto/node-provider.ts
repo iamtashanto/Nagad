@@ -119,8 +119,10 @@ export class NodeCryptoProvider implements CryptoProvider {
 
       NodeCryptoProvider.capabilityVerified = true;
     } catch (error) {
+      const detectedNode = process.version;
+      const detectedOpenSsl = process.versions.openssl || "unknown";
       throw new NagadCryptoCapabilityError(
-        `Host Node.js runtime failed RSA PKCS#1 v1.5 capability check (CVE-2023-46809 / OpenSSL restriction): ${error instanceof Error ? error.message : String(error)}. ` +
+        `Host Node.js runtime (${detectedNode}, OpenSSL ${detectedOpenSsl}) failed RSA PKCS#1 v1.5 capability check (CVE-2023-46809 / OpenSSL restriction): ${error instanceof Error ? error.message : String(error)}. ` +
           `Remediation options:\n` +
           `1. Ensure your Node.js build includes OpenSSL 3 implicit rejection (recommended: Node >= 20.12.0 or >= 18.20.0).\n` +
           `2. Supply an optional PureJsCryptoProvider adapter for edge/constrained environments.\n` +

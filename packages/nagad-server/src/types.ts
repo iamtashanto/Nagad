@@ -69,8 +69,15 @@ export interface NagadConfig {
   signatureAlgorithm?: "SHA256" | "SHA1";
 
   /**
-   * Whether to cryptographically verify Nagad's signature on responses.
-   * Defaults to true (default-on).
+   * Explicit, loudly named override to disable cryptographic verification of Nagad response signatures.
+   * WARNING: Setting this to true exposes your application to forged callbacks and MITM tampering!
+   * Defaults to false (verification is default-on).
+   */
+  dangerouslySkipSignatureVerification?: boolean;
+
+  /**
+   * @deprecated Use `dangerouslySkipSignatureVerification: true` instead.
+   * Legacy flag: Whether to cryptographically verify Nagad's signature on responses. Defaults to true.
    */
   verifySignature?: boolean;
 

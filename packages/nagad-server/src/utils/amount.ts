@@ -31,7 +31,7 @@ export function normalizeAmount(amount: string | number): string {
   validateAmount(amount);
   const str = typeof amount === "number" ? amount.toFixed(2) : amount.trim();
   const parts = str.split(".");
-  const whole = parts[0];
+  const whole = parts[0].replace(/^0+(?=\d)/, "");
   const decimal = parts[1] || "";
   return `${whole}.${decimal.padEnd(2, "0").slice(0, 2)}`;
 }

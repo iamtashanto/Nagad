@@ -9,6 +9,9 @@ describe("Amount Normalization & Poisha Conversions", () => {
     expect(normalizeAmount(12.5)).toBe("12.50");
     expect(normalizeAmount("12.5")).toBe("12.50");
     expect(normalizeAmount("1250.75")).toBe("1250.75");
+    expect(normalizeAmount("0500")).toBe("500.00");
+    expect(normalizeAmount("050.25")).toBe("50.25");
+    expect(normalizeAmount("0.50")).toBe("0.50");
   });
 
   it("preserves exact fractional string formatting without float drift", () => {

@@ -204,7 +204,15 @@ export class NagadClient {
         );
       }
 
-      if (this.config.verifySignature !== false) {
+      const skipSignature =
+        this.config.dangerouslySkipSignatureVerification === true ||
+        this.config.verifySignature === false;
+
+      if (skipSignature) {
+        this.logger?.warn(
+          "[SECURITY WARNING] Nagad digital signature verification is explicitly skipped via dangerouslySkipSignatureVerification. This is unsafe for production!",
+        );
+      } else {
         const isSignatureValid = await this.crypto.verifyWithPublicKey(
           decryptedInitStr,
           String(initResJson.signature),

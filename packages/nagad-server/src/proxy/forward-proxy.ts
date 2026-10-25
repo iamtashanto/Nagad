@@ -27,7 +27,24 @@ export function createForwardProxyFetch(
   ): Promise<Response> {
     const targetUrl = new URL(input.toString());
 
+    if (init?.signal?.aborted) {
+      return Promise.reject(
+        new DOMException("The operation was aborted", "AbortError"),
+      );
+    }
+
     return new Promise((resolve, reject) => {
+      let aborted = false;
+      const onAbort = () => {
+        aborted = true;
+        connectReq.destroy();
+        reject(new DOMException("The operation was aborted", "AbortError"));
+      };
+
+      if (init?.signal) {
+        init.signal.addEventListener("abort", onAbort, { once: true });
+      }
+
       // Establish HTTP CONNECT tunnel through the forward proxy
       const connectReq = http.request({
         host: proxyUrl.hostname,
@@ -41,6 +58,11 @@ export function createForwardProxyFetch(
       });
 
       connectReq.on("connect", (res, socket) => {
+        if (aborted) {
+          socket.destroy();
+          return;
+        }
+
         if (res.statusCode !== 200) {
           socket.destroy();
           return reject(
