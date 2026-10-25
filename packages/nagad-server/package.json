@@ -8,14 +8,89 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    },
+    "./redis": {
+      "types": {
+        "import": "./dist/redis.d.ts",
+        "require": "./dist/redis.d.cts"
+      },
+      "import": "./dist/redis.js",
+      "require": "./dist/redis.cjs",
+      "default": "./dist/redis.js"
+    },
+    "./frameworks": {
+      "types": {
+        "import": "./dist/frameworks.d.ts",
+        "require": "./dist/frameworks.d.cts"
+      },
+      "import": "./dist/frameworks.js",
+      "require": "./dist/frameworks.cjs",
+      "default": "./dist/frameworks.js"
+    },
+    "./upstash": {
+      "types": {
+        "import": "./dist/upstash.d.ts",
+        "require": "./dist/upstash.d.cts"
+      },
+      "import": "./dist/upstash.js",
+      "require": "./dist/upstash.cjs",
+      "default": "./dist/upstash.js"
+    },
+    "./kv": {
+      "types": {
+        "import": "./dist/kv.d.ts",
+        "require": "./dist/kv.d.cts"
+      },
+      "import": "./dist/kv.js",
+      "require": "./dist/kv.cjs",
+      "default": "./dist/kv.js"
+    },
+    "./proxy": {
+      "types": {
+        "import": "./dist/proxy.d.ts",
+        "require": "./dist/proxy.d.cts"
+      },
+      "import": "./dist/proxy.js",
+      "require": "./dist/proxy.cjs",
+      "default": "./dist/proxy.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "redis": [
+        "./dist/redis.d.ts"
+      ],
+      "frameworks": [
+        "./dist/frameworks.d.ts"
+      ],
+      "upstash": [
+        "./dist/upstash.d.ts"
+      ],
+      "kv": [
+        "./dist/kv.d.ts"
+      ],
+      "proxy": [
+        "./dist/proxy.d.ts"
+      ]
     }
   },
+  "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",

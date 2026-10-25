@@ -33,8 +33,8 @@ export class NagadClient {
   public readonly config: Readonly<NagadConfig>;
   private readonly privateKeyPem: string;
   private readonly pgPublicKeyPem: string;
-  private readonly crypto: CryptoProvider;
-  private readonly sessionStore: SessionStore;
+  public readonly crypto: CryptoProvider;
+  public readonly sessionStore: SessionStore;
   private readonly baseUrl: string;
   private readonly fetchFn: typeof globalThis.fetch;
   private readonly logger?: NagadLogger;
