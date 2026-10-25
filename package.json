@@ -1,0 +1,15 @@
+{
+  "name": "nagad-monorepo",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "description": "Unofficial, enterprise-grade Nagad Payment Gateway SDK for Node.js, Web, and Mobile",
+  "packageManager": "pnpm@10.5.2",
+  "scripts": {
+    "build:website": "pnpm --filter nagad-website build",
+    "dev:website": "pnpm --filter nagad-website dev",
+    "check:website": "pnpm --filter nagad-website check"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}

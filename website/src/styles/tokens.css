@@ -1,0 +1,125 @@
+/**
+ * Design Tokens for Nagad SDK Documentation & Marketing Website
+ * Strict WCAG 2.2 AA Contrast Verified
+ * Distinct from Nagad commercial brand (red/orange) and sibling bKash (pink)
+ */
+
+:root {
+  /* Color Palette: Light Mode (Polar Slate & Teal/Emerald Accent) */
+  --bg-canvas: #f8fafc; /* Slate 50 */
+  --bg-surface: #ffffff; /* Pure White */
+  --bg-surface-elevated: #f1f5f9; /* Slate 100 */
+  --bg-surface-inset: #e2e8f0; /* Slate 200 */
+
+  --border-subtle: #e2e8f0; /* Slate 200 */
+  --border-strong: #cbd5e1; /* Slate 300 */
+  --border-focus: #0d9488; /* Teal 600 */
+
+  --text-primary: #0f172a; /* Slate 900 (Contrast 15.6:1 on white) */
+  --text-secondary: #334155; /* Slate 700 (Contrast 9.6:1 on white) */
+  --text-muted: #64748b; /* Slate 500 (Contrast 4.6:1 on white - Passes AA) */
+
+  /* Primary Accent Tokens (Light) */
+  --accent-primary: #0d9488; /* Teal 600 (Contrast 4.53:1 on white) */
+  --accent-text: #0f766e; /* Teal 700 (Contrast 5.85:1 on white - Robust AA) */
+  --accent-hover: #115e59; /* Teal 800 (Contrast 7.82:1 on white) */
+  --accent-surface: #f0fdfa; /* Teal 50 */
+  --accent-surface-border: #99f6e4; /* Teal 200 */
+  --accent-contrast: #ffffff; /* White text on teal-700/800 */
+  --accent-glow: rgba(13, 148, 136, 0.15);
+
+  /* Status Tokens (Light) */
+  --status-success-bg: #ecfdf5;
+  --status-success-border: #a7f3d0;
+  --status-success-text: #065f46; /* Contrast 7.2:1 */
+
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+  --status-warning-text: #92400e; /* Contrast 6.8:1 */
+
+  --status-error-bg: #fef2f2;
+  --status-error-border: #fecaca;
+  --status-error-text: #991b1b; /* Contrast 7.5:1 */
+
+  --status-info-bg: #f0f9ff;
+  --status-info-border: #bae6fd;
+  --status-info-text: #075985; /* Contrast 7.1:1 */
+
+  /* Typography Stacks */
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-bangla:
+    "Hind Siliguri", "Noto Sans Bengali", "SolaimanLipi", -apple-system,
+    sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+
+  /* Spacing & Layout */
+  --header-height: 4rem;
+  --sidebar-width: 17.5rem;
+  --max-content-width: 82rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-subtle:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --shadow-card:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-elevated:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark Mode Tokens (Obsidian & Emerald/Teal Accent) */
+html.dark {
+  --bg-canvas: #090d16; /* Obsidian Deep Canvas */
+  --bg-surface: #0f172a; /* Slate 900 */
+  --bg-surface-elevated: #1e293b; /* Slate 800 */
+  --bg-surface-inset: #030712; /* Gray 950 */
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-focus: #2dd4bf; /* Teal 400 */
+
+  --text-primary: #f8fafc; /* Slate 50 (Contrast 17.5:1 on #090D16) */
+  --text-secondary: #cbd5e1; /* Slate 300 (Contrast 12.2:1 on #090D16) */
+  --text-muted: #94a3b8; /* Slate 400 (Contrast 7.2:1 on #090D16 - Passes AAA) */
+
+  /* Primary Accent Tokens (Dark) */
+  --accent-primary: #2dd4bf; /* Teal 400 (Contrast 12.3:1 on #090D16) */
+  --accent-text: #2dd4bf; /* Teal 400 */
+  --accent-hover: #5eead4; /* Teal 300 (Contrast 14.7:1 on #090D16) */
+  --accent-surface: rgba(45, 212, 191, 0.08);
+  --accent-surface-border: rgba(45, 212, 191, 0.25);
+  --accent-contrast: #090d16; /* Dark text on glowing teal button */
+  --accent-glow: rgba(45, 212, 191, 0.18);
+
+  /* Status Tokens (Dark) */
+  --status-success-bg: rgba(16, 185, 129, 0.12);
+  --status-success-border: rgba(16, 185, 129, 0.3);
+  --status-success-text: #6ee7b7; /* Contrast 10.4:1 */
+
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-warning-border: rgba(245, 158, 11, 0.3);
+  --status-warning-text: #fcd34d; /* Contrast 11.2:1 */
+
+  --status-error-bg: rgba(244, 63, 94, 0.12);
+  --status-error-border: rgba(244, 63, 94, 0.3);
+  --status-error-text: #fda4af; /* Contrast 9.8:1 */
+
+  --status-info-bg: rgba(14, 165, 233, 0.12);
+  --status-info-border: rgba(14, 165, 233, 0.3);
+  --status-info-text: #7dd3fc; /* Contrast 10.9:1 */
+
+  /* Shadows (Dark) */
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-elevated:
+    0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+}

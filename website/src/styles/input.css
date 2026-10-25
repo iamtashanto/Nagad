@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Base styles using Design Tokens */
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  min-height: 100vh;
+}
+
+[lang="bn"] body,
+body[lang="bn"] {
+  font-family: var(--font-bangla);
+}
+
+/* Custom Utilities mapped to design tokens */
+.bg-canvas {
+  background-color: var(--bg-canvas);
+}
+
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.bg-surface-elevated {
+  background-color: var(--bg-surface-elevated);
+}
+
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.border-strong {
+  border-color: var(--border-strong);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.accent-text {
+  color: var(--accent-text);
+}
+
+.accent-bg {
+  background-color: var(--accent-primary);
+}
+
+.accent-surface {
+  background-color: var(--accent-surface);
+  border-color: var(--accent-surface-border);
+}
+
+.accent-focus-ring:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

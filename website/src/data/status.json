@@ -1,0 +1,96 @@
+{
+  "version": "0.1.0-alpha.0",
+  "releaseStage": "pre-release",
+  "features": {
+    "checkout_session_initialize": {
+      "name": "Session Initialization",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Planned for Phase 1 core engine"
+    },
+    "checkout_complete": {
+      "name": "Order Placement & Complete",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Planned for Phase 1 core engine"
+    },
+    "payment_verification": {
+      "name": "Payment Verification",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Mandatory server-side verify with amount and order ID matching"
+    },
+    "payment_status_check": {
+      "name": "Status Check",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Query payment status via Nagad API"
+    },
+    "crypto_provider": {
+      "name": "Native Crypto Provider",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "RSA-PKCS1 + RSA-SHA256 (Node crypto and WebCrypto for Edge)"
+    },
+    "express_adapter": {
+      "name": "Express Adapter",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Subpath export nagad-server/express"
+    },
+    "nextjs_adapter": {
+      "name": "Next.js App Router Adapter",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Subpath export nagad-server/next"
+    },
+    "hono_adapter": {
+      "name": "Hono Adapter",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Subpath export nagad-server/hono"
+    },
+    "react_hook": {
+      "name": "React Hook (useNagadCheckout)",
+      "status": "planned",
+      "package": "nagad-client",
+      "notes": "Headless state machine hook"
+    },
+    "react_native_webview": {
+      "name": "React Native WebView",
+      "status": "planned",
+      "package": "nagad-client",
+      "notes": "In-app WebView checkout with deep-link & back-button support"
+    },
+    "vue_composable": {
+      "name": "Vue 3 Composable (useNagad)",
+      "status": "planned",
+      "package": "nagad-client",
+      "notes": "Planned for Phase 3"
+    },
+    "angular_service": {
+      "name": "Angular Service",
+      "status": "planned",
+      "package": "nagad-client",
+      "notes": "Planned for Phase 3"
+    },
+    "mock_simulator": {
+      "name": "Local Test Simulator",
+      "status": "planned",
+      "package": "nagad-server",
+      "notes": "Offline local test server with throwaway RSA keys"
+    },
+    "refund": {
+      "name": "Programmatic Refund API",
+      "status": "not_supported",
+      "package": "nagad-server",
+      "notes": "Not supported: use the Nagad merchant portal"
+    },
+    "webhook_ipn": {
+      "name": "Server-to-Server Webhook / IPN",
+      "status": "not_supported",
+      "package": "nagad-server",
+      "notes": "Not supported (unverified in Nagad specifications)"
+    }
+  }
+}

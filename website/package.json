@@ -1,0 +1,20 @@
+{
+  "name": "nagad-website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Documentation and marketing website for nagad-server and nagad-client",
+  "scripts": {
+    "build:css": "tailwindcss -i src/styles/input.css -o dist/css/output.css --minify",
+    "build:site": "node scripts/build.js",
+    "build": "pnpm build:css && pnpm build:site",
+    "dev": "node scripts/dev.js",
+    "check:links": "node scripts/check-links.js",
+    "check:html": "node scripts/check-html.js",
+    "check": "pnpm check:links && pnpm check:html"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "tailwindcss": "4.3.3"
+  }
+}
