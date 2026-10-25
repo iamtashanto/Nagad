@@ -5,11 +5,19 @@
   "description": "Unofficial, enterprise-grade Nagad Payment Gateway SDK for Node.js, Web, and Mobile",
   "packageManager": "pnpm@10.5.2",
   "scripts": {
+    "build": "pnpm --filter nagad-server --filter nagad-simulator build",
+    "test": "vitest run",
+    "typecheck": "pnpm --filter nagad-server --filter nagad-simulator typecheck",
     "build:website": "pnpm --filter nagad-website build",
     "dev:website": "pnpm --filter nagad-website dev",
     "check:website": "pnpm --filter nagad-website check"
   },
   "devDependencies": {
-    "prettier": "^3.5.3"
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "prettier": "^3.5.3",
+    "tsup": "^9.0.0",
+    "typescript": "^5.8.2",
+    "vitest": "^5.0.5"
   }
 }

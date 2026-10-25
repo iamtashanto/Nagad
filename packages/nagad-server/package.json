@@ -1,0 +1,45 @@
+{
+  "name": "nagad-server",
+  "version": "0.1.0-alpha.1",
+  "description": "Zero-dependency, production-grade Nagad payment gateway SDK for Node.js and TypeScript",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "nagad-simulator": "workspace:*"
+  },
+  "peerDependencies": {
+    "ioredis": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ioredis": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "nagad",
+    "payment",
+    "gateway",
+    "bangladesh",
+    "mfs",
+    "dfs",
+    "fintech"
+  ],
+  "license": "MIT"
+}

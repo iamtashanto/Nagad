@@ -1,9 +1,11 @@
 # Technical Architecture & Design Document: Nagad SDK
 
-**Status**: PROPOSED (Awaiting User Approval)  
-**Package Scope**: `nagad-server` and `nagad-client`  
-**License**: MIT (Open Source)  
-**Author**: Senior TypeScript Library Engineer (Pair Programming with ta-shanto)
+**Document Version:** 1.2.0  
+**Status:** Approved for Phase 1 Implementation (Updated with Gate Review Revisions)  
+**Author:** Senior TypeScript Library Engineer (Pair Programming with ta-shanto)  
+**Target Monorepo:** `iamtashanto/Nagad` (`nagad-server` and `nagad-client`)  
+**Scope:** Architecture, Canonical Models, CryptoProvider, SessionStore, Order ID Engine, Error Taxonomy & Runtimes  
+**License:** MIT (Open Source)
 
 ---
 
@@ -11,10 +13,14 @@
 
 ### 1.1 Core Principles
 
-1. **Zero Runtime Dependencies in Core**: The core library relies exclusively on native runtime primitives (Node.js `node:crypto`, standard `fetch`, standard `AbortController`). No Axios, no Lodash, no heavy crypto polyfills in core.
+1. **Zero Runtime Dependencies in Core**: The core server engine relies exclusively on runtime primitives (`node:crypto`, native `fetch`, native `AbortController`). No Axios, no Lodash, no heavy crypto polyfills.
 2. **Zero Client Secrets**: The browser and mobile applications **never** hold merchant private keys, PG public keys, or merchant credentials. All cryptographic handshakes and verification take place on the merchant server.
 3. **Never Trust Callback Query Parameters**: Callbacks received via browser redirects (`GET /callback?status=Success...`) are treated as untrusted user inputs. No payment is finalized without an atomic server-to-server call to Nagad's verification API comparing order ID, amount, currency, and merchant ID against a persisted session.
-4. **Deterministic Security & Idempotency**: State transitions are atomic. Replaying a callback URL cannot re-credit an account, issue duplicate course enrollments, or trigger repeat side-effects.
+4. **Deterministic Financial Verification & Replay Protection**:
+   - **Never compare floating-point numbers**: Amounts are processed and verified as normalized strings (or integer minor units / poisha) end-to-end with strict regex validation (`/^\d+(\.\d{1,2})?$/`).
+   - **Atomic Lease-Based Claims**: `claim()` in `SessionStore` includes a lease/expiry. If a verification call encounters a transient network timeout, the session reverts to a retryable state rather than staying locked in `verifying`.
+   - **Two-Phase Completion**: Transitions cleanly through `verified` $\to$ `fulfilled` with `markFulfilled(orderId)` and a dedicated hook contract keyed by `orderId`.
+5. **Architectural Alignment with bKash**: Interfaces (`SessionStore`, error taxonomy, status models, hooks) mirror the sibling `iamtashanto/Bkash` monorepo to facilitate a future unified payment gateway core.
 
 ### 1.2 System Boundary Diagram
 
@@ -30,11 +36,12 @@
 +-------------------------------------------------+------------------------------------------------+
 | MERCHANT BACKEND (nagad-server)                                                                  |
 | - Layered Control: createNagad(config)                                                           |
-| - SessionStore (Memory dev-only / Redis distributed CAS / Custom KV)                             |
+| - SessionStore (Memory dev-only / Redis distributed Lua CAS / Custom KV)                         |
 | - CryptoProvider (Node.js Native OpenSSL 3 / Pure-JS Edge Adapter)                               |
-| - Order ID Generator & Clock/Timezone (Asia/Dhaka)                                               |
+| - Order ID Generator & Injectable Clock/Timezone (Asia/Dhaka)                                    |
 | - Framework Adapters (Express, Next.js, Hono, Fastify, NestJS)                                   |
 | - Strict Verification & Typed Error Taxonomy                                                     |
+| - Reconcile / Sweeper Engine for stuck sessions                                                  |
 +-------------------------------------------------+------------------------------------------------+
                                                   | Asymmetric RSA-PKCS1 + RSA-SHA256 Handshake
                                                   v
@@ -55,14 +62,16 @@
 Nagad's API mandates the following asymmetric cryptographic specifications:
 
 - **Payload Encryption / Decryption**: RSA with `PKCS#1 v1.5` padding (`RSA_PKCS1_PADDING`). Outgoing sensitive data is encrypted using the **Nagad PG Public Key**; incoming sensitive data is decrypted using the **Merchant Private Key**.
-- **Digital Signatures**: RSA-SHA256 (default, verified in production live code) and SHA1withRSA (legacy fallback documented in v3.3 spec).
+- **Digital Signatures**: RSA-SHA256 (default-on; observed in live production) and SHA1withRSA (legacy fallback documented in v3.3 spec).
+- **Mandatory Response Verification**: Verification of Nagad's digital signatures on API responses is **default-on** and non-negotiable.
 
 #### Critical Runtime Realities & Constraints:
 
 1. **WebCrypto Incompatibility**: The W3C Web Cryptography API specification (`globalThis.crypto.subtle`) **explicitly does not support `RSAES-PKCS1-v1_5` for encryption and decryption** (only `RSASSA-PKCS1-v1_5` for signing, and `RSA-OAEP` for encryption). WebCrypto throws `Unrecognized algorithm name` when attempting PKCS#1 v1.5 decryption. Therefore, pure WebCrypto runtimes cannot natively decrypt Nagad response payloads.
 2. **Node.js Marvin Attack Mitigations (CVE-2023-46809)**:
-   - In Node.js versions `18.19.1` through `18.19.3` and `20.11.1` through `20.11.3`, Node disabled or altered `RSA_PKCS1_PADDING` decryption to mitigate Marvin timing attacks.
-   - In modern Node.js versions (`>= 18.20.0`, `>= 20.12.0`, and `22+` / `24+`), Node utilizes OpenSSL 3's implicit rejection (returning constant-time pseudo-random bytes on padding error instead of throwing a timing-leaking exception).
+   - In Node.js versions `18.19.1` through `18.19.3` and `20.11.1` through `20.11.3`, Node disabled or altered `RSA_PKCS1_PADDING` private decryption to mitigate Marvin timing attacks.
+   - **Support does not depend solely on Node major version, but on the specific Node build and OpenSSL implicit-rejection availability.** (For record: Development environment verified on Node `v24.14.0` with OpenSSL `3.5.5`).
+   - `NodeCryptoProvider.checkCapability()` runs immediately upon client initialization. If the host Node build cannot safely decrypt with `RSA_PKCS1_PADDING`, it throws `NagadCryptoCapabilityError` immediately with actionable remediation steps.
 
 ### 2.2 `CryptoProvider` Interface Specification
 
@@ -80,6 +89,7 @@ export interface CryptoProvider {
   /**
    * Decrypts Base64-encoded ciphertext with Merchant Private Key using RSA PKCS#1 v1.5 padding.
    * Returns UTF-8 decrypted plaintext.
+   * Guarantees a single uniform error on any failure without leaking padding or timing details.
    */
   decryptWithPrivateKey(
     ciphertextBase64: string,
@@ -107,8 +117,8 @@ export interface CryptoProvider {
   ): Promise<boolean>;
 
   /**
-   * Runs a zero-overhead startup sanity check to verify whether the host runtime
-   * supports PKCS#1 v1.5 private decryption without throwing Marvin errors.
+   * Runs an in-memory startup capability check with ephemeral keys.
+   * Throws NagadCryptoCapabilityError if the runtime cannot safely decrypt PKCS#1 v1.5.
    */
   checkCapability(): Promise<void>;
 }
@@ -119,127 +129,151 @@ export interface CryptoProvider {
 #### 1. `NodeCryptoProvider` (Default in `nagad-server`)
 
 - Uses `node:crypto` (`publicEncrypt`, `privateDecrypt`, `createSign`, `createVerify`).
-- Executes a startup capability check (`checkCapability()`) using an ephemeral in-memory 2048-bit key pair.
-- If private decryption fails due to Node Marvin restrictions, it throws `NagadCryptoCapabilityError` with precise guidance:
+- Startup check generates an ephemeral 2048-bit key pair in memory, encrypts a test string, and decrypts it with `RSA_PKCS1_PADDING`.
+- If private decryption fails due to Node Marvin restrictions, it throws `NagadCryptoCapabilityError`:
   ```
-  NagadCryptoCapabilityError: Node.js runtime failed RSA PKCS#1 v1.5 capability check (CVE-2023-46809).
-  Resolution options:
-  1. Upgrade to Node.js >= 20.12.0 or >= 18.20.0 (recommended: native implicit rejection).
-  2. Provide a PureJsCryptoProvider adapter for edge/constrained environments.
-  3. Set NODE_OPTIONS="--security-revert=CVE-2023-46809" (last resort, security trade-off).
+  NagadCryptoCapabilityError: Host Node.js runtime failed RSA PKCS#1 v1.5 capability check (CVE-2023-46809).
+  Resolution:
+  1. Upgrade to a Node.js build with OpenSSL 3 implicit rejection (Node >= 20.12.0 or >= 18.20.0).
+  2. Or configure a PureJsCryptoProvider adapter for edge/constrained environments.
+  3. Legacy fallback only: run with NODE_OPTIONS="--security-revert=CVE-2023-46809" (caution: timing risk).
   ```
 
 #### 2. `PureJsCryptoProvider` (Optional Peer Adapter for Edge Runtimes)
 
-- For Cloudflare Workers, Vercel Edge, Deno deploy, or legacy environments where native OpenSSL PKCS#1 v1.5 decryption is unavailable.
-- Implements constant-time RSA big-integer arithmetic and PKCS#1 v1.5 padding unwrapping without native bindings.
-- Injected via `createNagad({ cryptoProvider: new PureJsCryptoProvider() })`.
+- Designed for Cloudflare Workers, Vercel Edge, or environments without OpenSSL implicit rejection.
+- Implements constant-time RSA modular exponentiation and constant-time PKCS#1 v1.5 unpadding.
+- **Uniform Error Guarantee**: Never exposes decryption failure details, padding length errors, or syntax errors. Returns a single uniform `NagadCryptoError("Decryption failed")` in constant time.
+- Packaged as an optional peer package `nagad-crypto-purejs` or modular adapter.
 
-### 2.4 Supported Runtimes Matrix
+### 2.4 Multi-OS & Multi-Major CI Test Matrix
 
-| Runtime                | Version Supported         | Native Support                         | Pure-JS Adapter Needed?          |
-| :--------------------- | :------------------------ | :------------------------------------- | :------------------------------- |
-| **Node.js**            | `>= 20.12.0`, `>= 22.0.0` | **Yes (Full)**                         | No                               |
-| **Node.js**            | `>= 18.20.0`              | **Yes (Full)**                         | No                               |
-| **Node.js**            | `20.11.1 - 20.11.3`       | **Requires `--security-revert`**       | Or use pure-JS adapter           |
-| **Bun**                | `>= 1.0.0`                | **Yes (`node:crypto`)**                | No                               |
-| **Deno**               | `>= 1.40.0`               | **Yes (`node:crypto`)**                | No                               |
-| **Cloudflare Workers** | Modern                    | **No (WebCrypto lacks PKCS1 decrypt)** | **Yes (`PureJsCryptoProvider`)** |
-| **Vercel Edge**        | Modern                    | **No (WebCrypto lacks PKCS1 decrypt)** | **Yes (`PureJsCryptoProvider`)** |
+CI includes a matrix running the PKCS#1 round-trip capability test across:
+
+- Node.js 18.x, 20.x, 22.x, 24.x
+- Operating systems: Ubuntu Latest, Debian-based runners, and Alpine Linux (musl libc + OpenSSL variations).
 
 ---
 
-## 3. Session Store & State Machine Architecture
+## 3. Session Store, State Machine & Financial Idempotency
 
-### 3.1 The Payment State Machine
+### 3.1 Canonical State Machine
 
 ```mermaid
 stateDiagram-v2
-    [*] --> initialized: create() session saved
-    initialized --> redirected: checkout complete URL returned
-    redirected --> callback_received: user returns from Nagad
-    callback_received --> verifying: atomic CAS lock claimed
-    verifying --> success: amount & orderId matched + verify status Success
-    verifying --> failed: verify status Failed / amount mismatch
-    verifying --> cancelled: verify status Cancelled / Aborted
-    success --> [*]
+    [*] --> initialized: checkout.create()
+    initialized --> redirected: Nagad URL returned
+    redirected --> verifying: callback received / claim() lease acquired
+    verifying --> redirected: transient error / lease expired (retriable)
+    verifying --> verified: verifyPayment() success & financial match
+    verifying --> failed: terminal failure from Nagad
+    verifying --> cancelled: customer cancelled on Nagad page
+    verified --> fulfilled: markFulfilled(orderId) / hook complete
+    fulfilled --> [*]
     failed --> [*]
     cancelled --> [*]
 ```
 
-### 3.2 `SessionStore` Interface Specification
+### 3.2 Canonical `PaymentSession` Model
 
-To eliminate the critical vulnerability where callbacks grab the "latest pending payment", all lookups are indexed strictly by `paymentReferenceId`. Replay protection is enforced via an atomic Compare-And-Set (CAS) claim.
+Aligned with `PaymentSession` conventions in the sibling bKash package:
 
 ```typescript
-export interface NagadSession {
+export type NagadPaymentStatus =
+  | "initialized"
+  | "redirected"
+  | "verifying"
+  | "verified"
+  | "fulfilled"
+  | "failed"
+  | "cancelled";
+
+export interface PaymentSession {
   orderId: string;
-  amount: string; // e.g. "1250.00"
-  currency: string; // e.g. "050" (BDT)
-  paymentReferenceId: string; // Unique token returned by Nagad during init
-  status:
-    | "initialized"
-    | "redirected"
-    | "callback_received"
-    | "verifying"
-    | "success"
-    | "failed"
-    | "cancelled";
+  paymentReferenceId: string;
+  /** Normalized string representation of amount (e.g. "1250.00") */
+  amount: string;
+  currency: string; // Must be "050" (BDT)
+  status: NagadPaymentStatus;
   clientIp?: string;
+  claimLeaseUntil?: number; // Epoch ms timestamp for lease expiration
   metadata?: Record<string, unknown>;
-  createdAt: number; // Epoch ms
-  updatedAt: number; // Epoch ms
+  createdAt: number;
+  updatedAt: number;
   verifiedAt?: number;
-}
-
-export interface SessionStore {
-  /**
-   * Saves or overwrites a session with a specified TTL.
-   */
-  set(
-    paymentRefId: string,
-    session: NagadSession,
-    ttlSeconds: number,
-  ): Promise<void>;
-
-  /**
-   * Retrieves a session by Nagad payment reference ID.
-   */
-  get(paymentRefId: string): Promise<NagadSession | null>;
-
-  /**
-   * Atomically claims a session for verification (CAS).
-   * Transitions state from fromStatus to toStatus atomically.
-   * Returns true if transition succeeded; false if already claimed/transitioned.
-   */
-  claim(
-    paymentRefId: string,
-    fromStatus: NagadSession["status"],
-    toStatus: NagadSession["status"],
-  ): Promise<boolean>;
-
-  /**
-   * Updates an existing session with partial data.
-   */
-  update(paymentRefId: string, patch: Partial<NagadSession>): Promise<void>;
-
-  /**
-   * Deletes a session.
-   */
-  delete(paymentRefId: string): Promise<void>;
+  fulfilledAt?: number;
 }
 ```
 
-### 3.3 Built-in Store Implementations
+### 3.3 `SessionStore` Interface Specification
+
+```typescript
+export interface SessionStore {
+  /**
+   * Atomically creates a session IF AND ONLY IF orderId does not already exist.
+   * Throws NagadDuplicateOrderIdError if orderId is already present (prevents race conditions before calling Nagad).
+   */
+  createSession(session: PaymentSession, ttlSeconds: number): Promise<void>;
+
+  /**
+   * Retrieves a session by paymentReferenceId.
+   */
+  getSession(paymentRefId: string): Promise<PaymentSession | null>;
+
+  /**
+   * Retrieves a session by merchant orderId.
+   */
+  getSessionByOrderId(orderId: string): Promise<PaymentSession | null>;
+
+  /**
+   * Atomically claims a session for verification with a lease duration (e.g., 30s).
+   * Transitions from 'redirected' (or an expired 'verifying') to 'verifying'.
+   * Returns true if lease acquired; false if another worker is actively verifying.
+   */
+  claimSession(paymentRefId: string, leaseDurationMs: number): Promise<boolean>;
+
+  /**
+   * Releases a lease back to 'redirected' on transient network failures so it can be retried.
+   */
+  releaseClaim(paymentRefId: string): Promise<void>;
+
+  /**
+   * Updates an existing session with status and timestamp.
+   */
+  updateSessionStatus(
+    paymentRefId: string,
+    status: NagadPaymentStatus,
+    patch?: Partial<PaymentSession>,
+  ): Promise<void>;
+
+  /**
+   * Marks a session as fulfilled, completing the lifecycle.
+   */
+  markFulfilled(orderId: string): Promise<void>;
+
+  /**
+   * Finds sessions stuck in 'verifying' or 'verified' for background reconciliation.
+   */
+  findStaleSessions(olderThanMs: number): Promise<PaymentSession[]>;
+
+  /**
+   * Deletes or archives a session.
+   */
+  deleteSession(paymentRefId: string): Promise<void>;
+}
+```
+
+### 3.4 Store Implementations
 
 1. **`MemorySessionStore`**:
-   - In-memory Map with automatic TTL eviction.
-   - For single-process local development and unit tests. Emits a console warning if used without explicit production configuration.
+   - In-memory implementation with lock maps and TTL timers.
+   - For single-process development and unit testing only (logs a warning if initialized in production).
 2. **`RedisSessionStore`**:
    - Production distributed store.
-   - Uses an atomic Redis Lua script for `claim()` to ensure distributed CAS safety across serverless instances or multi-container clusters.
-3. **`CustomSessionStore`**:
-   - Developers can supply any database store (PostgreSQL, MongoDB, Prisma, DynamoDB) by implementing the `SessionStore` interface.
+   - `createSession`: Uses atomic `SET key val NX EX ttl` keyed on `orderId` to prevent duplicate checkouts before contacting Nagad.
+   - `claimSession`: Executes an atomic Lua script validating state and lease expiration before granting the verification lock.
+   - Replay protection: Sets long-lived tombstone records upon terminal completion (`fulfilled`, `failed`, `cancelled`) to reject subsequent callback replays.
+3. **Generic KV/DB Adapters**: Clean interface for PostgreSQL, MongoDB, Prisma, DynamoDB.
 
 ---
 
@@ -249,372 +283,224 @@ export interface SessionStore {
 
 ```typescript
 export interface NagadConfig {
-  /** 15-character Merchant ID provided by Nagad */
   merchantId: string;
-
-  /**
-   * Merchant RSA Private Key.
-   * Accepts: PEM string, single-line Base64 body, file path ('file://...'), or Buffer.
-   */
   merchantPrivateKey: string | Buffer;
-
-  /**
-   * Nagad Payment Gateway RSA Public Key.
-   * Accepts: PEM string, single-line Base64 body, file path ('file://...'), or Buffer.
-   */
   pgPublicKey: string | Buffer;
-
-  /**
-   * Base URL for Nagad API endpoints.
-   * In sandbox: developer onboarding base URL.
-   * In production: developer live base URL.
-   */
   baseUrl: string;
-
-  /**
-   * Static or default public server egress IPv4 address passed in X-KM-IP-V4 header.
-   * Can be overridden per request.
-   */
   serverIp?: string;
-
-  /**
-   * Digital signature algorithm.
-   * Defaults to 'SHA256' (observed in live production). Supports 'SHA1' for legacy accounts.
-   */
+  /** Digital signature algorithm: 'SHA256' (default) or 'SHA1' (legacy) */
   signatureAlgorithm?: "SHA256" | "SHA1";
-
-  /**
-   * Session persistence store for idempotency and callback verification.
-   * Defaults to MemorySessionStore.
-   */
+  /** Default-on: verifies Nagad's signature on responses. Set to false only for mock testing. */
+  verifySignature?: boolean;
   sessionStore?: SessionStore;
-
-  /**
-   * Custom CryptoProvider. Defaults to NodeCryptoProvider.
-   */
   cryptoProvider?: CryptoProvider;
-
-  /**
-   * Custom fetch/transport function (for proxies, logging, or mock testing).
-   */
   fetch?: typeof globalThis.fetch;
-
-  /**
-   * Allowed clock skew window in milliseconds (default: 300,000ms / 5 minutes).
-   */
+  /** Injectable clock function for deterministic time testing */
+  clock?: () => Date;
   clockSkewToleranceMs?: number;
-
-  /**
-   * Lifecycle hooks.
-   */
   hooks?: {
     beforeRequest?: (url: string, init: RequestInit) => Promise<void> | void;
     afterResponse?: (url: string, response: Response) => Promise<void> | void;
-    onVerificationSuccess?: (
-      session: NagadSession,
-      result: NagadVerifyResponse,
+    onPaymentVerified?: (
+      session: PaymentSession,
+      result: VerifyPaymentResult,
     ) => Promise<void> | void;
-    onVerificationFailure?: (
-      session: NagadSession | null,
-      error: Error,
-    ) => Promise<void> | void;
+    onPaymentFulfilled?: (session: PaymentSession) => Promise<void> | void;
   };
-
-  /**
-   * Structured logger with automatic PII and credential redaction.
-   */
   logger?: NagadLogger;
 }
 ```
 
-### 4.2 Initiating Checkout: `nagad.checkout.create(params)`
+### 4.2 Checkout Initiation: `nagad.checkout.create(params)`
 
 ```typescript
 export interface CreateCheckoutParams {
-  /**
-   * Unique order identifier (5-20 alphanumeric characters).
-   * If omitted, a cryptographically secure collision-resistant orderId is generated.
-   */
+  /** Caller-supplied ID (5-20 alphanumeric characters) or omitted to auto-generate */
   orderId?: string;
-
-  /** Payable amount formatted up to two decimal points, e.g. "1500.00" */
+  /** Amount as string or minor units (strict regex validation) */
   amount: string | number;
-
-  /** Callback URL where Nagad redirects user upon payment completion */
   callbackUrl: string;
-
-  /** Currency code. Defaults to "050" (BDT) */
   currency?: string;
-
-  /** Client IPv4 address for X-KM-IP-V4 header */
   clientIp?: string;
-
-  /** Client type header. Defaults to 'PC_WEB' */
   clientType?: "PC_WEB" | "MOBILE_WEB" | "MOBILE_APP" | "WALLET_WEB_VIEW";
-
-  /** Session TTL in seconds. Defaults to 900 (15 minutes) */
   sessionTtlSeconds?: number;
-
-  /** Additional merchant metadata to store with session */
   metadata?: Record<string, unknown>;
 }
 
 export interface CreateCheckoutResult {
-  /** The hosted Nagad checkout URL to which the customer must be redirected */
   callBackUrl: string;
-
-  /** Nagad's unique reference identifier for this transaction session */
   paymentReferenceId: string;
-
-  /** The final order ID assigned to this checkout */
   orderId: string;
 }
 ```
 
-#### Step-by-Step Internal Execution:
+#### Workflow:
 
-1. Validates or generates the `orderId` (checks 5-20 alphanumeric constraint).
-2. Generates a 32-character random hex `challenge`.
-3. Formats BDT timestamp (`Asia/Dhaka`, `yyyyMMddHHmmss`).
-4. Encrypts sensitive payload with `pgPublicKey` (`RSA_PKCS1_PADDING`) and signs with `merchantPrivateKey` (RSA-SHA256).
-5. Calls Nagad `/api/dfs/check-out/initialize/{merchantId}/{orderId}`.
-6. Decrypts response `sensitiveData` using `merchantPrivateKey`, verifies Nagad's signature, and extracts `paymentReferenceId` + server `challenge`.
-7. Prepares Place Order payload using server challenge, encrypts and signs, and calls Nagad `/api/dfs/check-out/complete/{paymentReferenceId}`.
-8. Stores session `{ orderId, amount, currency, paymentReferenceId, status: 'redirected' }` in `SessionStore`.
-9. Returns `{ callBackUrl, paymentReferenceId, orderId }`.
+1. Validates or generates `orderId` against `^[A-Za-z0-9]{5,20}$`.
+2. Normalizes amount string (e.g. `"1500.00"`).
+3. Atomically invokes `sessionStore.createSession(...)` with status `initialized`. If `orderId` already exists, throws `NagadDuplicateOrderIdError` immediately.
+4. Generates a 32-character random hex `challenge` using `crypto.randomBytes(16).toString('hex')`.
+5. Computes `Asia/Dhaka` timestamp (`yyyyMMddHHmmss`) via explicit timezone math without touching process `TZ`.
+6. Encrypts payload with `pgPublicKey` (`RSA_PKCS1_PADDING`) and signs with `merchantPrivateKey` (`RSA-SHA256`).
+7. Posts to `/api/dfs/check-out/initialize/{merchantId}/{orderId}`.
+8. Decrypts `sensitiveData`, verifies Nagad signature, extracts `paymentReferenceId` and server challenge.
+9. Posts to `/api/dfs/check-out/complete/{paymentReferenceId}`.
+10. Updates session to `status: 'redirected'` and returns `{ callBackUrl, paymentReferenceId, orderId }`.
 
-### 4.3 Verifying Payment: `nagad.checkout.verify(params)`
+### 4.3 Payment Verification: `nagad.checkout.verify(params)`
 
 ```typescript
 export interface VerifyPaymentParams {
-  /**
-   * The payment_ref_id query parameter received on callback redirect.
-   * Non-negotiable: MUST be provided.
-   */
   paymentRefId: string;
-
-  /**
-   * The expected amount for this order (e.g. "1500.00").
-   * nagad-server verifies that Nagad's response matches this exact amount.
-   */
   expectedAmount: string | number;
-
-  /**
-   * The expected orderId for this order.
-   * nagad-server verifies that Nagad's response matches this exact orderId.
-   */
   expectedOrderId?: string;
-
-  /** Client IPv4 address override for header */
   clientIp?: string;
 }
-
-export interface VerifyPaymentResult {
-  success: boolean;
-  orderId: string;
-  paymentRefId: string;
-  amount: string;
-  clientMobileNo?: string;
-  merchantMobileNo?: string;
-  issuerPaymentDateTime?: string;
-  issuerPaymentRefNo?: string; // Transaction authorization reference (TrxID)
-  status: "Success" | "Failed" | "Cancelled" | string;
-  statusCode: string;
-  rawResponse: Record<string, unknown>;
-}
 ```
 
-#### Step-by-Step Internal Execution:
+#### Idempotent & Retriable Verification Workflow:
 
-1. Retrieves session from `SessionStore` using `paymentRefId`. If not found, throws `NagadSessionNotFoundError`.
-2. Executes atomic CAS claim: `sessionStore.claim(paymentRefId, 'redirected', 'verifying')`. If claim fails, throws `NagadReplayAttackError` (prevents double-processing).
-3. Calls Nagad `/api/dfs/verify/payment/{paymentRefId}`.
-4. Validates Nagad's status:
-   - If `status !== "Success"`, marks session `failed` or `cancelled` and throws `NagadVerificationFailedError`.
-5. Cryptographically asserts:
-   - `normalizeAmount(response.amount) === normalizeAmount(expectedAmount)` $\to$ if mismatch, throws `NagadAmountMismatchError`.
-   - If `expectedOrderId` is provided: `response.orderId === expectedOrderId` $\to$ if mismatch, throws `NagadOrderIdMismatchError`.
-   - `response.merchantId === config.merchantId` $\to$ if mismatch, throws `NagadMerchantMismatchError`.
-6. Updates session in `SessionStore` to `status: 'success'` and records `verifiedAt: Date.now()`.
-7. Returns clean, strongly-typed `VerifyPaymentResult`.
+1. Retrieves session via `sessionStore.getSession(paymentRefId)`. If missing, throws `NagadSessionNotFoundError`.
+2. If session is already `verified` or `fulfilled`, returns existing verified result immediately without re-executing (idempotent).
+3. Acquires verification claim: `sessionStore.claimSession(paymentRefId, 30_000)`. If another worker holds an active lease, throws `NagadConcurrentVerificationError`.
+4. Calls Nagad `/api/dfs/verify/payment/{paymentRefId}`.
+   - If call encounters a network timeout / 5xx, executes `sessionStore.releaseClaim(paymentRefId)` and throws `NagadTimeoutError` (safe for retry).
+5. Verifies Nagad's digital signature on response (default-on).
+6. Strict Financial Validation:
+   - Compares normalized amount string against `expectedAmount`. If mismatch, throws `NagadVerificationMismatchError`.
+   - Compares `orderId` against `session.orderId`. If mismatch, throws `NagadVerificationMismatchError`.
+   - Compares `merchantId` against config.
+7. Updates session to `status: 'verified'` and fires `onPaymentVerified` hook.
+8. Returns `VerifyPaymentResult`.
 
-### 4.4 Status Query: `nagad.payment.getStatus(paymentRefId)`
+### 4.4 Lifecycle Fulfillment: `nagad.checkout.markFulfilled(orderId)`
 
-Calls `/api/dfs/verify/payment/{paymentRefId}` in read-only mode without mutating the session state, returning raw status data for admin dashboards or background reconciliation jobs.
+Called by application business logic after delivering goods, activating course enrollment, or updating ledger:
 
-### 4.5 Escape Hatch: `nagad.raw()`
+- Transitions session status from `verified` to `fulfilled`.
+- Triggers `onPaymentFulfilled` hook.
 
-Exposes low-level encrypted and signed HTTP transport methods (`raw.post(path, data)`, `raw.get(path)`) for advanced users requiring direct API access or interacting with unverified endpoints without library intervention.
+### 4.5 Background Reconcile & Sweeper: `nagad.reconcile(paymentRefId)`
 
----
+Public method for cron jobs, queue workers, or webhooks:
 
-## 5. Order ID Generator Specification
-
-Nagad enforces strict constraints on the format and uniqueness of `orderId`:
-
-- **Length**: Minimum 5, maximum 20 characters (`5~20`).
-- **Character Set**: Alphanumeric characters only (`[a-zA-Z0-9]`). No punctuation, hyphens, underscores, or spaces allowed.
-- **Uniqueness Window**: Nagad rejects duplicate order IDs within the same calendar day (Error `16_0006_083`: _"Duplicate Order ID in same day"_).
-
-### Built-in Generator Implementation (`generateOrderId`):
-
-- Format: `NG` + 7-character Base36 timestamp + 7-character cryptographically secure random Base36 string = **16 alphanumeric characters**.
-- Example: `NGM4L8K9P2X7Y9Q3`.
-- Guarantees strict compliance with the 5-20 length limit, uses only `[0-9A-Za-z]`, and prevents collisions under heavy concurrency.
+- Retrieves payment status directly from Nagad API.
+- If payment succeeded on Nagad but session was interrupted in `verifying`, completes verification and brings session to `verified`.
 
 ---
 
-## 6. Network, Client IP & Egress Proxy Strategy
+## 5. Strict Data Format Specifications
 
-1. **`X-KM-IP-V4` Requirement**:
-   - Nagad checks the `X-KM-IP-V4` header against the merchant's registered static egress IP.
-   - `createNagad({ serverIp: process.env.NAGAD_REGISTERED_EGRESS_IP })` provides the fallback.
-   - Individual calls (`checkout.create({ clientIp })`, `checkout.verify({ clientIp })`) can override this dynamically.
-2. **Egress Proxy for Serverless / Edge**:
-   - Serverless functions (AWS Lambda, Vercel, Netlify) have dynamic outbound IPs that cannot be whitelisted directly in Nagad's firewall.
-   - `nagad-server` provides a clean transport override:
-     ```typescript
-     import { createNagad, createForwardProxyFetch } from "nagad-server";
+### 5.1 Order ID Engine (`generateOrderId`)
 
-     const nagad = createNagad({
-       fetch: createForwardProxyFetch("http://proxy.yourdomain.com:8080"),
-       serverIp: "203.0.113.50", // Fixed proxy public IP
-     });
-     ```
-   - We provide a complete documentation recipe for deploying a lightweight fixed-IP forward proxy via AWS NAT Gateway, DigitalOcean droplet, or Squid proxy.
+- **Specification**: 5 to 20 alphanumeric characters (`/^[A-Za-z0-9]{5,20}$/`).
+- **Default Generator**: `NG` + 7 chars Base36 timestamp + 7 chars crypto-random Base36 entropy = **16 characters**.
+- **User-Supplied ID Validation**: Throws `NagadInvalidOrderIdError` if user ID violates regex or length.
+
+### 5.2 Amount Normalization & Math
+
+- Handled strictly as strings formatted with two decimal places (e.g. `"1500.00"`).
+- Strict validation regex: `/^\d+(\.\d{1,2})?$/`.
+- Internal integer minor-unit conversion available (`toPoisha("15.50") === 1550`).
+- No JavaScript IEEE 754 floating-point equality comparisons (`amount1 === amount2` compares normalized strings).
+
+### 5.3 Timezone & Timestamps
+
+- Format: `yyyyMMddHHmmss` (14 numeric digits).
+- Explicit `Asia/Dhaka` (UTC+6) calculation:
+  ```typescript
+  const now = config.clock ? config.clock() : new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const bdt = new Date(utc + 6 * 3600000);
+  ```
+- Does not modify or depend on process-level `process.env.TZ`.
 
 ---
 
-## 7. Error Taxonomy & Mapping of Nagad Error Codes
+## 6. Error Taxonomy & Mapping of Nagad Error Codes
 
-Every error emitted by `nagad-server` inherits from `NagadError` with a typed code, HTTP status, and actionable developer remediation message:
+Aligned with `BkashError` architecture in sibling monorepo:
 
-```mermaid
-classDiagram
-    Error <|-- NagadError
-    NagadError <|-- NagadHttpError
-    NagadError <|-- NagadCryptoError
-    NagadError <|-- NagadValidationError
-    NagadError <|-- NagadSecurityError
-
-    NagadHttpError <|-- NagadApiError
-    NagadCryptoError <|-- NagadCryptoCapabilityError
-    NagadCryptoError <|-- NagadSignatureVerificationError
-    NagadSecurityError <|-- NagadAmountMismatchError
-    NagadSecurityError <|-- NagadOrderIdMismatchError
-    NagadSecurityError <|-- NagadReplayAttackError
-    NagadSecurityError <|-- NagadSessionNotFoundError
+```
+                            ┌────────────────────────┐
+                            │       NagadError       │
+                            └───────────┬────────────┘
+                                        │
+     ┌───────────────────────┬──────────┴────────────┬────────────────────────┐
+     ▼                       ▼                       ▼                        ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+│  NagadApiError   │  │NagadCryptoError  │  │NagadTimeoutError │  │NagadVerificationErr  │
+│ (raw code & msg) │  │(capability/keys) │  │(retryable hint)  │  │ (financial mismatch) │
+└──────────────────┘  └──────────────────┘  └──────────────────┘  └──────────────────────┘
 ```
 
-### 7.1 Nagad Official Error Code Mapping Table
+- **`NagadError`**: Base class containing `code`, `message`, and timestamp.
+- **`NagadApiError`**: Holds `rawCode`, `rawMessage`, `httpStatus`, and raw gateway payload. **All unknown Nagad error codes map gracefully to `NagadApiError` without crashing.**
+- **`NagadVerificationMismatchError`**: Emitted when amount, currency, or order ID fails validation.
+- **`NagadCryptoCapabilityError`**: Emitted when Node or host runtime fails PKCS#1 v1.5 capability check.
+- **`NagadTimeoutError`**: Emitted on transport timeout; signals that verification may be retried.
+- **`NagadDuplicateOrderIdError`**: Emitted on duplicate order ID within same day (`16_0006_083`).
+- **`NagadClockSkewError`**: Emitted on date/time window mismatch (`16_0006_076`).
 
-| Nagad Error Code              | Official Nagad Message                      | `nagad-server` Typed Error Class  | Resolution Guidance                                                    |
-| :---------------------------- | :------------------------------------------ | :-------------------------------- | :--------------------------------------------------------------------- |
-| `16_0006_004` / `16_0006_050` | Provided merchant ID is invalid             | `NagadInvalidMerchantError`       | Verify `NAGAD_MERCHANT_ID` matches portal.                             |
-| `16_0006_052`                 | Invalid Merchant                            | `NagadInvalidMerchantError`       | Merchant profile is not configured for DFS checkout.                   |
-| `16_0006_053`                 | Inactive Merchant                           | `NagadInactiveMerchantError`      | Contact Nagad merchant operations to activate account.                 |
-| `16_0006_056`                 | Encryption failed                           | `NagadCryptoError`                | Outgoing RSA-PKCS1 encryption failed. Check public key.                |
-| `16_0006_057`                 | Decryption failed                           | `NagadCryptoError`                | Nagad could not decrypt payload. Verify uploaded public key in portal. |
-| `16_0006_058`                 | Failed to verify signature                  | `NagadSignatureVerificationError` | Signature mismatch. Check private key matches uploaded certificate.    |
-| `16_0006_061`                 | Invalid merchant key                        | `NagadKeyError`                   | RSA key format invalid. Expected 2048-bit RSA PEM.                     |
-| `16_0006_064`                 | Mandatory Header Missing                    | `NagadMissingHeaderError`         | Check `X-KM-IP-V4`, `X-KM-Client-Type`, and `X-KM-Api-Version`.        |
-| `16_0006_068`                 | Invalid Order Id                            | `NagadInvalidOrderIdError`        | `orderId` must be 5-20 alphanumeric characters only.                   |
-| `16_0006_076`                 | Transaction Date Time Not in allowed window | `NagadClockSkewError`             | Server clock is out of sync. Synchronize NTP to `Asia/Dhaka` (UTC+6).  |
-| `16_0006_081`                 | Invalid Date Time Format                    | `NagadInvalidTimestampError`      | Date format must be strictly `yyyyMMddHHmmss`.                         |
-| `16_0006_083`                 | Duplicate Order ID in same day              | `NagadDuplicateOrderIdError`      | Order ID was already used today. Generate a unique order ID.           |
-| `16_0006_080`                 | Invalid Currency Code                       | `NagadInvalidCurrencyError`       | Currency code must be `"050"` for BDT.                                 |
-| `16_0006_999`                 | Invalid Request                             | `NagadInvalidRequestError`        | General malformed request payload.                                     |
+### 6.1 PII Sanitization
+
+- Customer phone numbers (`clientMobileNo`) are masked in logs and returned objects by default (e.g., `01712345678` $\to$ `017****5678`).
+- Keys, challenges, and encrypted blobs are automatically redacted from debug output.
 
 ---
 
-## 8. Client Architecture (`nagad-client`)
-
-`nagad-client` provides a lightweight, zero-dependency headless state machine with thin UI bindings:
-
-### 8.1 Headless State Machine (`createNagadMachine`)
-
-- **States**: `idle` $\to$ `creating` $\to$ `awaiting_user` $\to$ `verifying` $\to$ `success` | `failed` | `cancelled`.
-- **Transitions**:
-  - `start({ orderId, amount })`: Calls backend `POST /api/payment/create`, receives `{ callBackUrl, paymentReferenceId }`, transitions to `awaiting_user`.
-  - `poll()`: Interrogates backend `GET /api/payment/status/{orderId}`.
-  - `reset()`: Resets state to `idle`.
-
-### 8.2 React Hook (`useNagadCheckout`)
-
-```tsx
-import { useNagadCheckout } from "nagad-client/react";
-
-export function CheckoutComponent() {
-  const { initiate, state, error, isLoading } = useNagadCheckout({
-    endpoint: "/api/payment/create",
-    onSuccess: (payment) =>
-      router.push(`/order/success?ref=${payment.paymentRefId}`),
-    onFailure: (err) => toast.error(err.message),
-  });
-
-  return (
-    <button
-      onClick={() => initiate({ amount: "1200.00" })}
-      disabled={isLoading}
-    >
-      {isLoading ? "Connecting to Nagad..." : "Pay with Nagad"}
-    </button>
-  );
-}
-```
-
-### 8.3 React Native `<NagadCheckoutWebView />`
-
-- Renders an isolated React Native WebView pointing to the Nagad hosted checkout URL.
-- Intercepts navigation URL changes matching `callbackUrl` prefix.
-- Automatically captures callback redirect parameters and invokes `onPaymentSuccess`, `onPaymentCancel`, or `onPaymentFailure`.
-- Handles Android hardware back button cleanly with a customizable confirmation prompt.
-
----
-
-## 9. Monorepo Package Structure & Build Configuration
+## 7. Monorepo Structure & Deliverables for Phase 1
 
 ```
 packages/
-├── nagad-server/                 # Core server library & framework adapters
+├── nagad-server/
 │   ├── src/
-│   │   ├── index.ts              # createNagad, types, session stores
-│   │   ├── crypto/               # CryptoProvider, NodeCryptoProvider
-│   │   ├── session/              # MemorySessionStore, RedisSessionStore
-│   │   ├── errors/               # NagadError taxonomy & code mappers
-│   │   ├── utils/                # Order ID generator, BDT timestamp, key normalizer
-│   │   └── adapters/             # express.ts, next.ts, hono.ts, fastify.ts, nest.ts
-│   ├── package.json              # Subpath exports: ., ./express, ./next, ./hono, etc.
-│   ├── tsconfig.json
-│   └── tsup.config.ts            # ESM + CJS + d.ts
-│
-├── nagad-client/                 # Core client library & framework bindings
-│   ├── src/
-│   │   ├── index.ts              # Headless state machine
-│   │   ├── react/                # useNagadCheckout hook
-│   │   ├── react-native/         # NagadCheckoutWebView
-│   │   ├── vue/                  # useNagad composable
-│   │   └── angular/              # NagadService
-│   ├── package.json              # Subpath exports: ., ./react, ./react-native, ./vue, ./angular
+│   │   ├── index.ts              # createNagad, public exports
+│   │   ├── client.ts             # NagadClient implementation
+│   │   ├── crypto/
+│   │   │   ├── provider.ts       # CryptoProvider interface
+│   │   │   └── node-provider.ts  # NodeCryptoProvider with capability check
+│   │   ├── session/
+│   │   │   ├── store.ts          # SessionStore interface, PaymentSession
+│   │   │   ├── memory-store.ts   # MemorySessionStore with lease CAS
+│   │   │   └── redis-store.ts    # RedisSessionStore with Lua script CAS
+│   │   ├── errors/
+│   │   │   ├── base.ts           # NagadError
+│   │   │   ├── api-error.ts      # NagadApiError & code mappers
+│   │   │   └── verification.ts   # NagadVerificationMismatchError, etc.
+│   │   └── utils/
+│   │       ├── order-id.ts       # generateOrderId & validator
+│   │       ├── amount.ts         # normalizeAmount & format checks
+│   │       └── date.ts           # BDT timestamp generator
+│   ├── package.json
 │   ├── tsconfig.json
 │   └── tsup.config.ts
 │
-└── nagad-simulator/              # Local offline mock Nagad server for unit & E2E tests
+├── nagad-simulator/              # Mock Nagad server with throwaway RSA keys
+│   ├── src/
+│   │   ├── server.ts             # Express/Node mock gateway
+│   │   └── keys.ts               # Generated throwaway test key pairs
+│   └── package.json
+│
+└── tests/
+    ├── crypto.test.ts            # Roundtrip encryption, signing, and capability check
+    ├── checkout.test.ts          # create() and verify() end-to-end against mock simulator
+    ├── session.test.ts           # CAS claims, lease expiration, replay rejection
+    ├── tamper.test.ts            # Amount, orderId, and signature tampering tests
+    └── order-id.test.ts          # Format, regex, and collision tests
 ```
 
 ---
 
-## 10. Summary & Sign-Off Gate
+## 8. Summary & Gate Check
 
-This design document fulfills all Phase 0 approval conditions:
+All items specified by user conditions are fully integrated:
 
-1. `docs/internal/AUDIT.md` moved to gitignored internal directory; scratch PDF copies deleted; external client repositories untouched.
-2. Gitleaks scanning integrated into CI and pre-commit.
-3. RSA PKCS#1 v1.5 Marvin attack mitigations documented accurately with clear capability checks, runtime matrices, and pure-JS fallback architecture.
-4. Robust `SessionStore` with atomic CAS claim preventing replay attacks and race conditions.
-5. Strict `orderId` generation conforming to Nagad's 5-20 alphanumeric constraint.
-6. Dynamic per-request client IP and fixed-IP proxy transport override.
-7. Typed error taxonomy mapping official `16_0006_xxx` codes.
-8. Refund marked as not supported (use merchant portal); webhooks marked as unverified.
-
-**STOP GATE**: Ready for user review and approval before proceeding to Phase 1 scaffold.
+1. `docs/internal/AUDIT.md` moved to gitignored internal directory; scratch files cleaned; external repos untouched.
+2. Gitleaks scan verified across full history with zero leaks found.
+3. Node + OpenSSL version recorded (`Node v24.14.0`, `OpenSSL 3.5.5`).
+4. `NodeCryptoProvider.checkCapability()` fast-fails at startup with actionable error.
+5. `claimSession()` includes lease duration and rollback on transient errors.
+6. Amounts verified as normalized strings/poisha (zero float comparisons).
+7. `createSession` enforces atomic create-if-absent for order ID deduplication.
+8. Interfaces aligned with sibling `Bkash` monorepo.
