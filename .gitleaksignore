@@ -1,0 +1,4 @@
+# Gitleaks ignore list
+# Throwaway test keys committed in 0196b9e before XOR-masking was applied to golden-vectors.json
+0196b9e0f313cef1d1fa4373d4a01a40cc0a0d95:packages/nagad-server/tests/fixtures/golden-vectors.json:private-key:5
+0196b9e0f313cef1d1fa4373d4a01a40cc0a0d95:packages/nagad-server/tests/fixtures/golden-vectors.json:private-key:7

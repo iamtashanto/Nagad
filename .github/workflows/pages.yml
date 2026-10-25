@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'website/**'
-      - '.github/workflows/pages.yml'
+      - "website/**"
+      - ".github/workflows/pages.yml"
   pull_request:
     paths:
-      - 'website/**'
-      - '.github/workflows/pages.yml'
+      - "website/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -52,7 +52,7 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path || '/Nagad/' }}
           SITE_URL: ${{ steps.pages.outputs.origin || 'https://iamtashanto.github.io/Nagad' }}
-          SITE_INDEXABLE: 'false'
+          SITE_INDEXABLE: "false"
         run: |
           pnpm build:website
 

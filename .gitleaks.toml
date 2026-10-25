@@ -1,0 +1,16 @@
+title = "Nagad Gateway Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-pem-private-key"
+description = "Generic PEM private key header"
+regex = '''-----BEGIN (?:RSA )?PRIVATE KEY-----'''
+tags = ["key", "pem"]
+
+[[rules]]
+id = "generic-long-base64-blob"
+description = "Long base64 key blob pattern"
+regex = '''MII[A-Za-z0-9+/]{100,}={0,2}'''
+tags = ["key", "base64"]

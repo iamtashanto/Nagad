@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-commit hook for Nagad repository
+set -e
+
+echo "🔒 Running gitleaks pre-commit check..."
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --verbose -c .gitleaks.toml
+else
+  echo "⚠️  gitleaks not installed locally. Skipping secret scan."
+fi
+
+echo "🧪 Running typecheck and unit tests..."
+pnpm run typecheck
+pnpm test

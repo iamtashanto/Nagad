@@ -29,8 +29,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  security-and-typecheck:
-    name: Security, Lint & Typecheck
+  security-and-lint:
+    name: Security, Lint, Types & Packaging Audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -63,10 +63,30 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Audit package exports with publint
+        run: |
+          npx -y publint packages/nagad-server
+          npx -y publint packages/nagad-client
+
+      - name: Audit TypeScript types resolution with @arethetypeswrong/cli
+        run: |
+          npx -y @arethetypeswrong/cli --pack packages/nagad-server
+          npx -y @arethetypeswrong/cli --pack packages/nagad-client
+
   test-matrix:
     name: Node ${{ matrix.node-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: security-and-typecheck
+    needs: security-and-lint
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
@@ -97,13 +117,13 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
-      - name: Run Test Suite (PKCS#1, race, tamper, verify)
+      - name: Run Test Suite (PKCS#1 roundtrip, race, tamper, verify, golden fixtures)
         run: pnpm test
 
   test-alpine:
     name: Node ${{ matrix.node-version }} on Alpine Linux (musl + OpenSSL)
     runs-on: ubuntu-latest
-    needs: security-and-typecheck
+    needs: security-and-lint
     strategy:
       fail-fast: false
       matrix:
@@ -131,3 +151,54 @@ jobs:
 
       - name: Run Test Suite on Alpine
         run: pnpm test
+
+  package-smoke-test:
+    name: Tarball Installation & Module Resolution Smoke Test
+    runs-on: ubuntu-latest
+    needs: security-and-lint
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@7088e561eb65bb68695d245aa206f005ef30921d # v4.1.0
+        with:
+          version: 10.5.2
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies and build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Pack tarballs
+        run: |
+          mkdir -p /tmp/tarballs
+          pnpm --filter nagad-server pack --pack-destination /tmp/tarballs
+          pnpm --filter nagad-client pack --pack-destination /tmp/tarballs
+
+      - name: Smoke test ESM and CJS imports in clean temp project
+        run: |
+          mkdir -p /tmp/smoke-test
+          cd /tmp/smoke-test
+          npm init -y
+          npm install /tmp/tarballs/nagad-server-*.tgz /tmp/tarballs/nagad-client-*.tgz
+
+          # ESM smoke test
+          node --input-type=module -e '
+            import { createNagad } from "nagad-server";
+            import { createNagadCheckout } from "nagad-client";
+            console.log("ESM Smoke Test Passed successfully");
+          '
+
+          # CJS smoke test
+          node -e '
+            const { createNagad } = require("nagad-server");
+            const { createNagadCheckout } = require("nagad-client");
+            console.log("CJS Smoke Test Passed successfully");
+          '
