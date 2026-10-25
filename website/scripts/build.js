@@ -272,10 +272,10 @@ function buildHomePage() {
 
             <!-- Install snippets -->
             <div class="mt-3 flex items-center justify-between font-mono text-sm px-2 py-1.5 rounded-lg bg-surface-elevated">
-              <span id="install-pnpm" data-pm-snippet="pnpm" class="text-primary truncate">pnpm add nagad-server nagad-client</span>
-              <span id="install-npm" data-pm-snippet="npm" class="text-primary truncate hidden">npm install nagad-server nagad-client</span>
-              <span id="install-yarn" data-pm-snippet="yarn" class="text-primary truncate hidden">yarn add nagad-server nagad-client</span>
-              <span id="install-bun" data-pm-snippet="bun" class="text-primary truncate hidden">bun add nagad-server nagad-client</span>
+              <span id="install-pnpm" data-pm-snippet="pnpm" class="text-primary truncate">pnpm add nagad-server@alpha nagad-client@alpha</span>
+              <span id="install-npm" data-pm-snippet="npm" class="text-primary truncate hidden">npm install nagad-server@alpha nagad-client@alpha</span>
+              <span id="install-yarn" data-pm-snippet="yarn" class="text-primary truncate hidden">yarn add nagad-server@alpha nagad-client@alpha</span>
+              <span id="install-bun" data-pm-snippet="bun" class="text-primary truncate hidden">bun add nagad-server@alpha nagad-client@alpha</span>
 
               <button type="button" data-copy-target="install-pnpm" class="ml-2 p-1.5 rounded hover:bg-surface text-secondary transition-colors shrink-0" aria-label="Copy install command">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,14 +438,19 @@ function buildHomePage() {
               <pre class="text-secondary"><span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { createNagad } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'nagad-server'</span>;
 <span class="text-teal-700 dark:text-teal-400 font-bold">import</span> express <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'express'</span>;
 
-<span class="text-muted">// Auto-loads keys from NAGAD_MERCHANT_ID, NAGAD_MERCHANT_PRIVATE_KEY, NAGAD_PG_PUBLIC_KEY</span>
-<span class="text-teal-700 dark:text-teal-400 font-bold">const</span> nagad = createNagad();
+<span class="text-muted">// Explicit config loading (or read from environment variables)</span>
+<span class="text-teal-700 dark:text-teal-400 font-bold">const</span> nagad = createNagad({
+  merchantId: process.env.NAGAD_MERCHANT_ID!,
+  merchantPrivateKey: process.env.NAGAD_PRIVATE_KEY!,
+  pgPublicKey: process.env.NAGAD_PG_PUBLIC_KEY!,
+  baseUrl: process.env.NAGAD_BASE_URL!,
+});
 <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> app = express();
 
-<span class="text-muted">// 1. Initiate checkout session</span>
+<span class="text-muted">// 1. Initiate checkout session (alphanumeric order ID)</span>
 app.post(<span class="text-emerald-700 dark:text-emerald-400">'/api/payment/create'</span>, <span class="text-teal-700 dark:text-teal-400 font-bold">async</span> (req, res) => {
   <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> session = <span class="text-teal-700 dark:text-teal-400 font-bold">await</span> nagad.checkout.create({
-    orderId: <span class="text-emerald-700 dark:text-emerald-400">'ORD_'</span> + Date.now(),
+    orderId: <span class="text-emerald-700 dark:text-emerald-400">'ORD'</span> + Date.now(),
     amount: <span class="text-emerald-700 dark:text-emerald-400">'1250.00'</span>,
     callbackUrl: <span class="text-emerald-700 dark:text-emerald-400">'https://merchant.com/api/payment/callback'</span>,
   });
@@ -469,7 +474,12 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
 <span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { createNagad } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'nagad-server'</span>;
 <span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { NextResponse } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'next/server'</span>;
 
-<span class="text-teal-700 dark:text-teal-400 font-bold">const</span> nagad = createNagad();
+<span class="text-teal-700 dark:text-teal-400 font-bold">const</span> nagad = createNagad({
+  merchantId: process.env.NAGAD_MERCHANT_ID!,
+  merchantPrivateKey: process.env.NAGAD_PRIVATE_KEY!,
+  pgPublicKey: process.env.NAGAD_PG_PUBLIC_KEY!,
+  baseUrl: process.env.NAGAD_BASE_URL!,
+});
 
 <span class="text-teal-700 dark:text-teal-400 font-bold">export async function</span> POST(request: Request) {
   <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> { orderId, amount } = <span class="text-teal-700 dark:text-teal-400 font-bold">await</span> request.json();
@@ -486,14 +496,17 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
             <div data-tab-panel="tab-react" class="hidden">
               <pre class="text-secondary"><span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { useNagadCheckout } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'nagad-client/react'</span>;
 
-<span class="text-teal-700 dark:text-teal-400 font-bold">export function</span> CheckoutButton({ orderId, amount }) {
-  <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> { initiate, status, isLoading } = useNagadCheckout({
-    endpoint: <span class="text-emerald-700 dark:text-emerald-400">'/api/payment/create'</span>,
-    onSuccess: (data) => console.log(<span class="text-emerald-700 dark:text-emerald-400">'Payment successful'</span>, data),
-  });
+<span class="text-teal-700 dark:text-teal-400 font-bold">export function</span> CheckoutButton() {
+  <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> { initiate, isLoading } = useNagadCheckout();
+
+  <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> handlePay = <span class="text-teal-700 dark:text-teal-400 font-bold">async</span> () => {
+    <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> res = <span class="text-teal-700 dark:text-teal-400 font-bold">await</span> fetch(<span class="text-emerald-700 dark:text-emerald-400">'/api/payment/create'</span>, { method: <span class="text-emerald-700 dark:text-emerald-400">'POST'</span> });
+    <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> { url } = <span class="text-teal-700 dark:text-teal-400 font-bold">await</span> res.json();
+    initiate(url);
+  };
 
   <span class="text-teal-700 dark:text-teal-400 font-bold">return</span> (
-    &lt;<span class="text-teal-700 dark:text-teal-400 font-bold">button</span> onClick={() => initiate({ orderId, amount })} disabled={isLoading}&gt;
+    &lt;<span class="text-teal-700 dark:text-teal-400 font-bold">button</span> onClick={handlePay} disabled={isLoading}&gt;
       {isLoading ? <span class="text-emerald-700 dark:text-emerald-400">'Connecting to Nagad...'</span> : <span class="text-emerald-700 dark:text-emerald-400">'Pay with Nagad'</span>}
     &lt;/<span class="text-teal-700 dark:text-teal-400 font-bold">button</span>&gt;
   );
@@ -502,15 +515,21 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
 
             <!-- React Native Tab -->
             <div data-tab-panel="tab-rn" class="hidden">
-              <pre class="text-secondary"><span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { NagadCheckoutWebView } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'nagad-client/react-native'</span>;
+              <pre class="text-secondary"><span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { WebView } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'react-native-webview'</span>;
+<span class="text-teal-700 dark:text-teal-400 font-bold">import</span> { createWebViewNavigationHandler } <span class="text-teal-700 dark:text-teal-400 font-bold">from</span> <span class="text-emerald-700 dark:text-emerald-400">'nagad-client/react-native'</span>;
 
 <span class="text-teal-700 dark:text-teal-400 font-bold">export function</span> NagadPaymentScreen({ route, navigation }) {
+  <span class="text-teal-700 dark:text-teal-400 font-bold">const</span> handler = createWebViewNavigationHandler({
+    callbackUrl: <span class="text-emerald-700 dark:text-emerald-400">'https://merchant.com/api/payment/callback'</span>,
+    onSuccess: (result) => navigation.navigate(<span class="text-emerald-700 dark:text-emerald-400">'OrderSuccess'</span>, result),
+    onClose: () => navigation.goBack(),
+  });
+
   <span class="text-teal-700 dark:text-teal-400 font-bold">return</span> (
-    &lt;<span class="text-teal-700 dark:text-teal-400 font-bold">NagadCheckoutWebView</span>
-      paymentUrl={route.params.paymentUrl}
-      callbackPrefix=<span class="text-emerald-700 dark:text-emerald-400">"https://merchant.com/api/payment/callback"</span>
-      onPaymentSuccess={(result) => navigation.navigate(<span class="text-emerald-700 dark:text-emerald-400">'OrderSuccess'</span>, result)}
-      onPaymentCancel={() => navigation.goBack()}
+    &lt;<span class="text-teal-700 dark:text-teal-400 font-bold">WebView</span>
+      source={{ uri: route.params.paymentUrl }}
+      onShouldStartLoadWithRequest={handler.onShouldStartLoadWithRequest}
+      onNavigationStateChange={handler.onNavigationStateChange}
     /&gt;
   );
 }</pre>
@@ -543,9 +562,20 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
               ${Object.entries(statusData.features)
                 .map(([key, item]) => {
                   let statusBadge = "";
-                  if (item.status === "stable") {
+                  if (
+                    item.status === "confirmed-vendor-reference" ||
+                    item.status === "confirmed-production" ||
+                    item.status === "stable"
+                  ) {
+                    const isProd =
+                      item.productionStatus === "confirmed-production" ||
+                      item.status === "confirmed-production";
+                    statusBadge = isProd
+                      ? '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">Confirmed Ref + Prod</span>'
+                      : '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">Confirmed Reference</span>';
+                  } else if (item.status === "verified-sandbox-e2e") {
                     statusBadge =
-                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">Stable</span>';
+                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">Verified Sandbox E2E</span>';
                   } else if (item.status === "experimental") {
                     statusBadge =
                       '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">Experimental</span>';
@@ -554,7 +584,7 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
                       '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">Planned</span>';
                   } else {
                     statusBadge =
-                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/20">Not Supported</span>';
+                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/20">Unverified / Portal Only</span>';
                   }
 
                   return `
