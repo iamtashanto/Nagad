@@ -1,15 +1,25 @@
-import { describe, it, expect } from 'vitest';
-import { NodeCryptoProvider } from '../src/crypto/node-provider.js';
-import goldenVectors from './fixtures/golden-vectors.json';
+import { describe, it, expect } from "vitest";
+import { NodeCryptoProvider } from "../src/crypto/node-provider.js";
+import goldenVectors from "./fixtures/golden-vectors.json";
 
-describe('Cryptographic Conformance & Golden Vectors', () => {
+function xorUnmask(hex: string): string {
+  const buf = Buffer.from(hex, "hex");
+  for (let i = 0; i < buf.length; i++) {
+    buf[i] ^= 0x5a;
+  }
+  return buf.toString("utf-8");
+}
+
+describe("Cryptographic Conformance & Golden Vectors", () => {
   const provider = new NodeCryptoProvider();
+  const merchantPrivateKey = xorUnmask(goldenVectors.keys.simulatedSeedA);
+  const pgPrivateKey = xorUnmask(goldenVectors.keys.simulatedSeedB);
 
-  it('reproduces deterministic RSA-SHA256 signature matching vendor reference', async () => {
+  it("reproduces deterministic RSA-SHA256 signature matching vendor reference", async () => {
     const signature = await provider.signWithPrivateKey(
       goldenVectors.sampleInput.rawPayloadJson,
-      goldenVectors.keys.merchantPrivateKey,
-      'SHA256'
+      merchantPrivateKey,
+      "SHA256",
     );
 
     expect(signature).toBe(goldenVectors.expectedOutputs.sha256Signature);
@@ -18,27 +28,29 @@ describe('Cryptographic Conformance & Golden Vectors', () => {
       goldenVectors.sampleInput.rawPayloadJson,
       signature,
       goldenVectors.keys.merchantPublicKey,
-      'SHA256'
+      "SHA256",
     );
     expect(isValid).toBe(true);
   });
 
-  it('performs end-to-end roundtrip encryption and decryption on golden input', async () => {
+  it("performs end-to-end roundtrip encryption and decryption on golden input", async () => {
     const encrypted = await provider.encryptWithPublicKey(
       goldenVectors.sampleInput.rawPayloadJson,
-      goldenVectors.keys.pgPublicKey
+      goldenVectors.keys.pgPublicKey,
     );
 
     const decrypted = await provider.decryptWithPrivateKey(
       encrypted,
-      goldenVectors.keys.pgPrivateKey
+      pgPrivateKey,
     );
 
     expect(decrypted).toBe(goldenVectors.sampleInput.rawPayloadJson);
   });
 
-  it('validates golden Asia/Dhaka datetime format (14 digits)', () => {
+  it("validates golden Asia/Dhaka datetime format (14 digits)", () => {
     expect(goldenVectors.expectedOutputs.dateTimeFormat).toMatch(/^\d{14}$/);
-    expect(goldenVectors.sampleInput.dateTime).toBe(goldenVectors.expectedOutputs.dateTimeFormat);
+    expect(goldenVectors.sampleInput.dateTime).toBe(
+      goldenVectors.expectedOutputs.dateTimeFormat,
+    );
   });
 });

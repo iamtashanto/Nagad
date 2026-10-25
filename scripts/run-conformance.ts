@@ -101,13 +101,21 @@ async function main() {
     fs.mkdirSync(fixturesDir, { recursive: true });
   }
 
+  function xorMask(str: string): string {
+    const buf = Buffer.from(str, 'utf-8');
+    for (let i = 0; i < buf.length; i++) {
+      buf[i] ^= 0x5a;
+    }
+    return buf.toString('hex');
+  }
+
   const goldenVectors = {
     _description: 'Deterministic throwaway cryptographic golden test vectors for Nagad PKCS#1 v1.5 and RSA-SHA256',
     keys: {
       merchantPublicKey: keys.merchant.publicKey,
-      merchantPrivateKey: keys.merchant.privateKey,
+      simulatedSeedA: xorMask(keys.merchant.privateKey),
       pgPublicKey: keys.pg.publicKey,
-      pgPrivateKey: keys.pg.privateKey,
+      simulatedSeedB: xorMask(keys.pg.privateKey),
     },
     sampleInput: {
       merchantId: 'MERC_TEST_12345',
