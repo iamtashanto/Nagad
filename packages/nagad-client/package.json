@@ -93,13 +93,17 @@
   },
   "peerDependencies": {
     "react": ">=16.8.0",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": ">=13.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "react-native": {
+      "optional": true
+    },
+    "react-native-webview": {
       "optional": true
     }
   },

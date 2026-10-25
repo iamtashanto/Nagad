@@ -94,5 +94,37 @@ describe("Nagad Client State Machine & Bindings", () => {
     });
     expect(callbackNav).toBe(false);
     expect(success).toBe(true);
+
+    // onShouldStartLoadWithRequest interceptor
+    let requestInterceptSuccess = false;
+    const requestHandler = createWebViewNavigationHandler({
+      callbackUrl: "https://myapp.com/payment/callback",
+      allowedHosts: ["sandbox.nagad.com.bd", "myapp.com"],
+      onSuccess: () => {
+        requestInterceptSuccess = true;
+      },
+    });
+
+    // Allowed foreign host
+    expect(
+      requestHandler.onShouldStartLoadWithRequest({
+        url: "https://sandbox.nagad.com.bd/checkout",
+      }),
+    ).toBe(true);
+
+    // Blocked malicious foreign host
+    expect(
+      requestHandler.onShouldStartLoadWithRequest({
+        url: "https://malicious-phishing.com/drain",
+      }),
+    ).toBe(false);
+
+    // Intercepted callback
+    expect(
+      requestHandler.onShouldStartLoadWithRequest({
+        url: "https://myapp.com/payment/callback?payment_ref_id=PAY_REQ&status=Success",
+      }),
+    ).toBe(false);
+    expect(requestInterceptSuccess).toBe(true);
   });
 });
