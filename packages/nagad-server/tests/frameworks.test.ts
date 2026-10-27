@@ -33,7 +33,7 @@ describe("Framework Handlers & Adapters", () => {
   });
 
   it("createWebHandler handles POST /create successfully", async () => {
-    const webHandler = createWebHandler(client);
+    const webHandler = createWebHandler(client, { allowClientAmount: true });
 
     const req = new Request("http://localhost:3000/create", {
       method: "POST",
@@ -86,6 +86,7 @@ describe("Framework Handlers & Adapters", () => {
   it("createNextRouteHandler exposes GET and POST methods", async () => {
     const routeHandler = createNextRouteHandler(client, {
       basePath: "/api/nagad",
+      allowClientAmount: true,
     });
     expect(typeof routeHandler.GET).toBe("function");
     expect(typeof routeHandler.POST).toBe("function");
@@ -104,7 +105,7 @@ describe("Framework Handlers & Adapters", () => {
   });
 
   it("createHonoHandler adapts context to web handler", async () => {
-    const honoHandler = createHonoHandler(client);
+    const honoHandler = createHonoHandler(client, { allowClientAmount: true });
 
     const mockContext = {
       req: {
@@ -124,7 +125,9 @@ describe("Framework Handlers & Adapters", () => {
   });
 
   it("createExpressMiddleware bridges request and response", async () => {
-    const middleware = createExpressMiddleware(client);
+    const middleware = createExpressMiddleware(client, {
+      allowClientAmount: true,
+    });
 
     const mockReq: any = {
       method: "POST",

@@ -1,13 +1,51 @@
 import type { NagadClient } from "../client.js";
+import {
+  NagadError,
+  NagadSessionNotFoundError,
+  NagadTimeoutError,
+  NagadVerificationMismatchError,
+} from "../errors/index.js";
 import type {
   CreateCheckoutParams,
   CreateCheckoutResult,
   VerifyPaymentResult,
 } from "../types.js";
 
+/** Order details decided by the merchant's server, never by the browser. */
+export interface ResolvedOrder {
+  /** Payable amount as a decimal string or integer poisha. */
+  amount: string | number;
+  /** Optional merchant order id (5-20 alphanumeric). Generated when omitted. */
+  orderId?: string;
+  currency?: string;
+  /** Overrides the handler-level callback URL for this order. */
+  callbackUrl?: string;
+}
+
 export interface NagadHandlerOptions {
   /** Optional base path prefix (e.g. "/api/nagad") */
   basePath?: string;
+  /**
+   * Decide the order for POST /create from your own data (session, cart, database).
+   * Required unless `allowClientAmount` is set. The request body is passed for
+   * reference only; never trust amounts from it.
+   */
+  resolveOrder?: (
+    req: Request,
+    body: Record<string, unknown>,
+  ) => Promise<ResolvedOrder> | ResolvedOrder;
+  /**
+   * UNSAFE: take amount/orderId from the client request body. Only for demos and
+   * tests. Off by default.
+   */
+  allowClientAmount?: boolean;
+  /** Fixed callback URL sent to Nagad. Defaults to `<request origin><basePath>/callback`. */
+  callbackUrl?: string;
+  /**
+   * Origins a client-supplied `callbackUrl` may use. Without this list the
+   * client-supplied value is ignored.
+   */
+  allowedCallbackOrigins?: string[];
   /** Hook called when payment completes and verifies successfully */
   onSuccess?: (
     result: VerifyPaymentResult,
@@ -53,13 +91,52 @@ export class NagadHttpHandler {
     try {
       // 1. Create Checkout Session: POST /create
       if (request.method === "POST" && path === "/create") {
-        const body = (await request.json()) as CreateCheckoutParams;
-        const result: CreateCheckoutResult =
-          await this.client.checkout.create(body);
-        return new Response(JSON.stringify({ success: true, ...result }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+        const body = ((await request.json().catch(() => ({}))) || {}) as Record<
+          string,
+          unknown
+        >;
+
+        let order: ResolvedOrder;
+        if (this.options.resolveOrder) {
+          order = await this.options.resolveOrder(request, body);
+        } else if (this.options.allowClientAmount) {
+          if (body.amount === undefined || body.amount === "") {
+            return json(400, { success: false, error: "amount is required." });
+          }
+          order = {
+            amount: body.amount as string | number,
+            orderId: body.orderId as string | undefined,
+            currency: body.currency as string | undefined,
+          };
+        } else {
+          return json(400, {
+            success: false,
+            error:
+              "Client-supplied amounts are disabled. Provide resolveOrder(request, body) in the handler options, or set allowClientAmount: true for demos.",
+          });
+        }
+
+        const callbackUrl = this.pickCallbackUrl(
+          request,
+          basePath,
+          order.callbackUrl,
+          body.callbackUrl,
+        );
+        if (!callbackUrl) {
+          return json(400, {
+            success: false,
+            error: "callbackUrl is not on the allowed origin list.",
+          });
+        }
+
+        // clientIp, clientType and sessionTtl are never taken from the body.
+        const result: CreateCheckoutResult = await this.client.checkout.create({
+          amount: order.amount,
+          orderId: order.orderId,
+          currency: order.currency,
+          callbackUrl,
         });
+        return json(200, { success: true, ...result });
       }
 
       // 2. Callback Handling: GET or POST /callback
@@ -101,11 +178,14 @@ export class NagadHttpHandler {
         }
 
         if (!paymentRefId) {
-          throw new Error("Missing payment_ref_id in callback parameters");
+          return json(400, {
+            success: false,
+            error: "Missing payment_ref_id in callback parameters.",
+          });
         }
 
         // Look up session to retrieve expected amount if resolver is not provided
-        let expectedAmount: string | number = "0.00";
+        let expectedAmount: string | number;
         if (this.options.resolveExpectedAmount) {
           expectedAmount = await this.options.resolveExpectedAmount(
             { paymentRefId, orderId },
@@ -114,9 +194,10 @@ export class NagadHttpHandler {
         } else {
           const session =
             await this.client.sessionStore.getSession(paymentRefId);
-          if (session) {
-            expectedAmount = session.amount;
+          if (!session) {
+            throw new NagadSessionNotFoundError(paymentRefId);
           }
+          expectedAmount = session.amount;
         }
 
         const verifyResult = await this.client.checkout.verify({
@@ -156,19 +237,78 @@ export class NagadHttpHandler {
         }
       }
 
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            error instanceof Error ? error.message : "Nagad transaction failed",
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return this.errorResponse(error);
     }
   }
+
+  private pickCallbackUrl(
+    request: Request,
+    basePath: string,
+    fromOrder?: string,
+    fromClient?: unknown,
+  ): string | null {
+    if (fromOrder) return fromOrder;
+    if (typeof fromClient === "string" && fromClient) {
+      try {
+        const origin = new URL(fromClient).origin;
+        if ((this.options.allowedCallbackOrigins || []).includes(origin)) {
+          return fromClient;
+        }
+      } catch {
+        // fall through to the configured/default URL
+      }
+      if (this.options.allowedCallbackOrigins?.length) return null;
+    }
+    return (
+      this.options.callbackUrl ||
+      new URL(request.url).origin + basePath + "/callback"
+    );
+  }
+
+  /**
+   * Maps errors to a minimal public response. Raw messages of unknown errors are
+   * never returned. An uncertain outcome (timeout) is reported as "unknown", not "failed".
+   */
+  private errorResponse(error: unknown): Response {
+    if (error instanceof NagadTimeoutError) {
+      return json(202, {
+        success: false,
+        status: "unknown",
+        retryable: false,
+        error:
+          "The gateway did not answer in time. The payment may still have succeeded; verify before retrying.",
+      });
+    }
+    if (error instanceof NagadSessionNotFoundError) {
+      return json(404, {
+        success: false,
+        status: "unknown_session",
+        error: "No pending payment found for this reference.",
+      });
+    }
+    if (error instanceof NagadVerificationMismatchError) {
+      return json(409, {
+        success: false,
+        status: "mismatch",
+        error: "Payment details did not match the expected order.",
+      });
+    }
+    if (error instanceof NagadError) {
+      return json(400, {
+        success: false,
+        code: error.code,
+        error: error.message,
+      });
+    }
+    return json(500, { success: false, error: "Nagad request failed." });
+  }
+}
+
+function json(status: number, data: unknown): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export function createWebHandler(
