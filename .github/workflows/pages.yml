@@ -50,7 +50,7 @@ jobs:
 
       - name: Build CSS and static pages
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path || '/Nagad/' }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path == '' && '/' || steps.pages.outputs.base_path }}
           SITE_URL: ${{ steps.pages.outputs.origin || 'https://iamtashanto.github.io/Nagad' }}
           SITE_INDEXABLE: "false"
         run: |
@@ -66,7 +66,7 @@ jobs:
 
       - name: Run base-path-aware link check
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path || '/Nagad/' }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path == '' && '/' || steps.pages.outputs.base_path }}
         run: pnpm --filter nagad-website check:links
 
       - name: Run HTML5 semantics and accessibility validation
