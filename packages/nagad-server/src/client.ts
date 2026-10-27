@@ -10,6 +10,8 @@ import type {
 } from "./types.js";
 import type { CryptoProvider } from "./crypto/provider.js";
 import { NodeCryptoProvider } from "./crypto/node-provider.js";
+import { PureJsCryptoProvider } from "./crypto/purejs-provider.js";
+import { NagadCryptoCapabilityError } from "./errors/crypto-error.js";
 import type { SessionStore } from "./session/store.js";
 import { MemorySessionStore } from "./session/memory-store.js";
 import {
@@ -33,7 +35,8 @@ export class NagadClient {
   public readonly config: Readonly<NagadConfig>;
   private readonly privateKeyPem: string;
   private readonly pgPublicKeyPem: string;
-  public readonly crypto: CryptoProvider;
+  public crypto: CryptoProvider;
+  private readonly cryptoIsDefault: boolean;
   public readonly sessionStore: SessionStore;
   private readonly baseUrl: string;
   private readonly fetchFn: typeof globalThis.fetch;
@@ -54,6 +57,7 @@ export class NagadClient {
     this.baseUrl = config.baseUrl.replace(/\/+$/, "");
     this.privateKeyPem = normalizeKey(config.merchantPrivateKey, "PRIVATE");
     this.pgPublicKeyPem = normalizeKey(config.pgPublicKey, "PUBLIC");
+    this.cryptoIsDefault = !config.cryptoProvider;
     this.crypto = config.cryptoProvider || new NodeCryptoProvider();
     this.sessionStore = config.sessionStore || new MemorySessionStore();
     this.fetchFn = config.fetch || globalThis.fetch.bind(globalThis);
@@ -64,7 +68,21 @@ export class NagadClient {
    * Initializes startup capability checks.
    */
   async init(): Promise<void> {
-    await this.crypto.checkCapability();
+    try {
+      await this.crypto.checkCapability();
+    } catch (error) {
+      // Node builds on OpenSSL 3.0 (for example Node 18 and 20) reject RSA PKCS#1 v1.5 private-key
+      // decryption. When the default provider is in use, decrypt with BigInt arithmetic instead.
+      if (this.cryptoIsDefault && error instanceof NagadCryptoCapabilityError) {
+        this.logger?.warn?.(
+          "node:crypto cannot decrypt RSA PKCS#1 v1.5 on this runtime; using the pure-JS decryption fallback.",
+        );
+        this.crypto = new PureJsCryptoProvider();
+        await this.crypto.checkCapability();
+        return;
+      }
+      throw error;
+    }
   }
 
   public readonly checkout = {

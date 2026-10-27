@@ -125,7 +125,7 @@ export class NodeCryptoProvider implements CryptoProvider {
         `Host Node.js runtime (${detectedNode}, OpenSSL ${detectedOpenSsl}) failed RSA PKCS#1 v1.5 capability check (CVE-2023-46809 / OpenSSL restriction): ${error instanceof Error ? error.message : String(error)}. ` +
           `Remediation options:\n` +
           `1. Use a Node.js build with OpenSSL >= 3.2 (tested: Node 22 and 24). Node 18.20 and 20.20 with OpenSSL 3.0 were observed to reject RSA PKCS#1 v1.5 private decryption.\n` +
-          `2. Pass cryptoProvider: new PureJsCryptoProvider() in the config (NOT TESTED on Node 18/20).\n` +
+          `2. Pass cryptoProvider: new PureJsCryptoProvider() in the config (tested on Node 18 and 20). When you do not set cryptoProvider, nagad-server switches to it automatically.\n` +
           `3. Legacy fallback: launch Node with NODE_OPTIONS="--security-revert=CVE-2023-46809" (note: timing risk).`,
       );
     }

@@ -1,6 +1,7 @@
 import http from "node:http";
 import crypto from "node:crypto";
 import type { SimulatorKeys } from "./keys.js";
+import { rsaDecryptPkcs1v15 } from "./rsa.js";
 
 export interface ChaosOptions {
   tamperAmount?: string;
@@ -159,15 +160,10 @@ export class NagadSimulator {
       const clientSignature = String(body.signature || "");
 
       // Decrypt client sensitive data with Nagad PG Private Key
-      const decryptedClientJson = crypto
-        .privateDecrypt(
-          {
-            key: this.keys.pg.privateKey,
-            padding: crypto.constants.RSA_PKCS1_PADDING,
-          },
-          Buffer.from(sensitiveDataEnc, "base64"),
-        )
-        .toString("utf-8");
+      const decryptedClientJson = rsaDecryptPkcs1v15(
+        sensitiveDataEnc,
+        this.keys.pg.privateKey,
+      ).toString("utf-8");
 
       // Verify client signature with Merchant Public Key
       const isSigValid = crypto
@@ -268,15 +264,10 @@ export class NagadSimulator {
       const sensitiveDataEnc = String(body.sensitiveData || "");
 
       // Decrypt complete payload
-      const decryptedCompleteJson = crypto
-        .privateDecrypt(
-          {
-            key: this.keys.pg.privateKey,
-            padding: crypto.constants.RSA_PKCS1_PADDING,
-          },
-          Buffer.from(sensitiveDataEnc, "base64"),
-        )
-        .toString("utf-8");
+      const decryptedCompleteJson = rsaDecryptPkcs1v15(
+        sensitiveDataEnc,
+        this.keys.pg.privateKey,
+      ).toString("utf-8");
 
       const completeData = JSON.parse(decryptedCompleteJson);
       session.amount = String(completeData.amount);

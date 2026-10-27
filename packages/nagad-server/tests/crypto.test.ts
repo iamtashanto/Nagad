@@ -1,3 +1,4 @@
+import nodeCrypto from "node:crypto";
 import { describe, it, expect } from "vitest";
 import { NodeCryptoProvider } from "../src/crypto/node-provider.js";
 import { PureJsCryptoProvider } from "../src/crypto/purejs-provider.js";
@@ -7,34 +8,60 @@ import {
 } from "../src/errors/crypto-error.js";
 import { generateSimulatorKeys } from "nagad-simulator";
 
+// node:crypto on OpenSSL 3.0 builds (Node 18/20) refuses RSA PKCS#1 v1.5 private-key decryption.
+const nodeCanDecryptPkcs1 = (() => {
+  try {
+    const { publicKey, privateKey } = nodeCrypto.generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
+    const enc = nodeCrypto.publicEncrypt(
+      { key: publicKey, padding: nodeCrypto.constants.RSA_PKCS1_PADDING },
+      Buffer.from("x"),
+    );
+    nodeCrypto.privateDecrypt(
+      { key: privateKey, padding: nodeCrypto.constants.RSA_PKCS1_PADDING },
+      enc,
+    );
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 describe("CryptoProvider & PKCS#1 v1.5 Tests", () => {
   const keys = generateSimulatorKeys();
   const provider = new NodeCryptoProvider();
 
-  it("runs checkCapability successfully on host runtime", async () => {
-    await expect(provider.checkCapability()).resolves.toBeUndefined();
-  });
+  it.skipIf(!nodeCanDecryptPkcs1)(
+    "runs checkCapability successfully on host runtime",
+    async () => {
+      await expect(provider.checkCapability()).resolves.toBeUndefined();
+    },
+  );
 
-  it("performs end-to-end RSA-PKCS1 round-trip encryption and decryption", async () => {
-    const plaintext = JSON.stringify({
-      orderId: "ORD12345678",
-      amount: "500.00",
-      challenge: "random-challenge-xyz",
-    });
+  it.skipIf(!nodeCanDecryptPkcs1)(
+    "performs end-to-end RSA-PKCS1 round-trip encryption and decryption",
+    async () => {
+      const plaintext = JSON.stringify({
+        orderId: "ORD12345678",
+        amount: "500.00",
+        challenge: "random-challenge-xyz",
+      });
 
-    const encrypted = await provider.encryptWithPublicKey(
-      plaintext,
-      keys.pg.publicKey,
-    );
-    expect(typeof encrypted).toBe("string");
-    expect(encrypted.length).toBeGreaterThan(50);
+      const encrypted = await provider.encryptWithPublicKey(
+        plaintext,
+        keys.pg.publicKey,
+      );
+      expect(typeof encrypted).toBe("string");
+      expect(encrypted.length).toBeGreaterThan(50);
 
-    const decrypted = await provider.decryptWithPrivateKey(
-      encrypted,
-      keys.pg.privateKey,
-    );
-    expect(decrypted).toBe(plaintext);
-  });
+      const decrypted = await provider.decryptWithPrivateKey(
+        encrypted,
+        keys.pg.privateKey,
+      );
+      expect(decrypted).toBe(plaintext);
+    },
+  );
 
   it("signs and verifies with RSA-SHA256", async () => {
     const payload = "sensitive-merchant-payload-2026";
