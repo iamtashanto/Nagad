@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { marked } from "marked";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,10 +34,6 @@ fs.mkdirSync(distDir, { recursive: true });
 fs.mkdirSync(path.join(distDir, "css"), { recursive: true });
 fs.mkdirSync(path.join(distDir, "js"), { recursive: true });
 fs.mkdirSync(path.join(distDir, "docs"), { recursive: true });
-fs.mkdirSync(path.join(distDir, "playground"), { recursive: true });
-fs.mkdirSync(path.join(distDir, "examples"), { recursive: true });
-fs.mkdirSync(path.join(distDir, "changelog"), { recursive: true });
-fs.mkdirSync(path.join(distDir, "api"), { recursive: true });
 
 // Copy JS modules
 const srcJsDir = path.join(srcDir, "js");
@@ -87,9 +84,7 @@ const navbarHtml = `
     <!-- Desktop Nav Links -->
     <nav class="hidden md:flex items-center space-x-8 text-sm font-medium" aria-label="Primary Navigation">
       <a href="${BASE_PATH}docs/" class="text-secondary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1" data-lang-en="Documentation" data-lang-bn="ডকুমেন্টেশন">Documentation</a>
-      <a href="${BASE_PATH}playground/" class="text-secondary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1" data-lang-en="Playground" data-lang-bn="প্লেগ্রাউন্ড">Playground</a>
-      <a href="${BASE_PATH}examples/" class="text-secondary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1" data-lang-en="Examples" data-lang-bn="উদাহরণ">Examples</a>
-      <a href="${BASE_PATH}changelog/" class="text-secondary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a>
+      <a href="${BASE_PATH}docs/changelog/" class="text-secondary hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a>
     </nav>
 
     <!-- Controls: Language, Theme, GitHub -->
@@ -130,9 +125,7 @@ const navbarHtml = `
   <!-- Mobile Dropdown -->
   <div id="mobile-menu" class="hidden md:hidden border-b border-subtle bg-surface px-4 pt-2 pb-4 space-y-2">
     <a href="${BASE_PATH}docs/" class="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:bg-surface-elevated" data-lang-en="Documentation" data-lang-bn="ডকুমেন্টেশন">Documentation</a>
-    <a href="${BASE_PATH}playground/" class="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:bg-surface-elevated" data-lang-en="Playground" data-lang-bn="প্লেগ্রাউন্ড">Playground</a>
-    <a href="${BASE_PATH}examples/" class="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:bg-surface-elevated" data-lang-en="Examples" data-lang-bn="উদাহরণ">Examples</a>
-    <a href="${BASE_PATH}changelog/" class="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:bg-surface-elevated" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a>
+    <a href="${BASE_PATH}docs/changelog/" class="block px-3 py-2 rounded-md text-base font-medium text-secondary hover:bg-surface-elevated" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a>
   </div>
 </header>
 `;
@@ -164,9 +157,7 @@ const footerHtml = `
         <h2 class="text-xs font-semibold text-primary uppercase tracking-wider mb-4" data-lang-en="Resources" data-lang-bn="রিসোর্স">Resources</h2>
         <ul class="space-y-2.5 text-sm text-secondary">
           <li><a href="${BASE_PATH}docs/" class="hover:text-primary transition-colors" data-lang-en="Documentation" data-lang-bn="ডকুমেন্টেশন">Documentation</a></li>
-          <li><a href="${BASE_PATH}playground/" class="hover:text-primary transition-colors" data-lang-en="Interactive Playground" data-lang-bn="প্লেগ্রাউন্ড">Interactive Playground</a></li>
-          <li><a href="${BASE_PATH}examples/" class="hover:text-primary transition-colors" data-lang-en="Code Recipes" data-lang-bn="কোড উদাহরণ">Code Recipes</a></li>
-          <li><a href="${BASE_PATH}changelog/" class="hover:text-primary transition-colors" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a></li>
+          <li><a href="${BASE_PATH}docs/changelog/" class="hover:text-primary transition-colors" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a></li>
         </ul>
       </div>
 
@@ -568,6 +559,9 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
                   } else if (item.status === "verified-sandbox-e2e") {
                     statusBadge =
                       '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">Verified Sandbox E2E</span>';
+                  } else if (item.status === "beta") {
+                    statusBadge =
+                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20">Beta</span>';
                   } else if (item.status === "experimental") {
                     statusBadge =
                       '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">Experimental</span>';
@@ -584,7 +578,7 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
                     <td class="py-3.5 px-4 sm:px-6 font-medium text-primary">${item.name}</td>
                     <td class="py-3.5 px-4 sm:px-6 font-mono text-xs text-muted">${item.package}</td>
                     <td class="py-3.5 px-4 sm:px-6">${statusBadge}</td>
-                    <td class="py-3.5 px-4 sm:px-6 text-xs text-secondary hidden sm:table-cell">${item.notes}</td>
+                    <td class="py-3.5 px-4 sm:px-6 text-xs text-secondary hidden sm:table-cell">${item.notes || ""}<br><span class="opacity-80">Evidence: ${item.evidence || "-"}</span></td>
                   </tr>
                   `;
                 })
@@ -625,8 +619,8 @@ function build404Page() {
       404
     </div>
     <h1 class="text-3xl sm:text-4xl font-extrabold text-primary" data-lang-en="Page Not Found" data-lang-bn="পৃষ্ঠাটি পাওয়া যায়নি">Page Not Found</h1>
-    <p class="mt-4 text-sm text-secondary max-w-md" data-lang-en="The requested page could not be located. If you followed a link within the documentation, please check back as we roll out Phase C and D guides." data-lang-bn="অনুরোধ করা পৃষ্ঠাটি পাওয়া যায়নি। আপনি যদি কোনো লিংকে ক্লিক করে থাকেন, তবে ফেজ সি ও ডি গাইডগুলো প্রকাশের জন্য অপেক্ষা করুন।">
-      The requested page could not be located. If you followed a link within the documentation, please check back as we roll out Phase C and D guides.
+    <p class="mt-4 text-sm text-secondary max-w-md" data-lang-en="The requested page could not be located. If you followed a link from the documentation, please open an issue so we can fix it." data-lang-bn="অনুরোধ করা পৃষ্ঠাটি পাওয়া যায়নি। আপনি যদি কোনো লিংকে ক্লিক করে থাকেন, তবে ফেজ সি ও ডি গাইডগুলো প্রকাশের জন্য অপেক্ষা করুন।">
+      The requested page could not be located. If you followed a link from the documentation, please open an issue so we can fix it.
     </p>
     <div class="mt-8">
       <a href="${BASE_PATH}" class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm transition-colors" data-lang-en="Return to Home" data-lang-bn="হোম পেজে ফিরে যান">
@@ -643,47 +637,192 @@ function build404Page() {
   fs.writeFileSync(path.join(distDir, "404.html"), html, "utf-8");
 }
 
-// Build clean placeholder landing pages for docs, playground, examples, changelog
-function buildPlaceholderSection(dirName, title, descEn, descBn) {
-  const html = `<!DOCTYPE html>
+// ---------------------------------------------------------------------------
+// Documentation: Markdown in website/docs -> dist/docs/<slug>/index.html
+// ---------------------------------------------------------------------------
+const docsDir = path.resolve(rootDir, "docs");
+const errorCodes = JSON.parse(
+  fs.readFileSync(path.join(srcDir, "data", "error-codes.json"), "utf-8"),
+);
+let docPages = [];
+
+const escapeHtml = (v) =>
+  String(v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+function statusTableHtml() {
+  return `<div class="overflow-x-auto"><table><thead><tr><th>Feature</th><th>Package</th><th>Status</th><th>Evidence</th></tr></thead><tbody>${Object.values(
+    statusData.features,
+  )
+    .map(
+      (f) =>
+        `<tr><td>${escapeHtml(f.name)}</td><td><code>${escapeHtml(f.package)}</code></td><td><span class="status-pill status-${f.status}">${escapeHtml(f.status)}</span></td><td>${escapeHtml(f.evidence || "")}</td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
+}
+
+function errorTableHtml() {
+  return `<div class="overflow-x-auto"><table><thead><tr><th>Nagad code</th><th>SDK error class</th><th>Meaning</th><th>What to do</th></tr></thead><tbody>${errorCodes
+    .map(
+      (e) =>
+        `<tr><td><code>${escapeHtml(e.code)}</code></td><td><code>${escapeHtml(e.errorClass)}</code></td><td>${escapeHtml(e.meaning)}</td><td>${escapeHtml(e.fix)}</td></tr>`,
+    )
+    .join("")}</tbody></table></div>`;
+}
+
+function parseFrontMatter(raw) {
+  const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
+  if (!m) return { data: {}, body: raw };
+  const data = {};
+  for (const line of m[1].split("\n")) {
+    const kv = line.match(/^([a-zA-Z_]+):\s*(.*)$/);
+    if (kv) data[kv[1]] = kv[2].replace(/^["']|["']$/g, "");
+  }
+  return { data, body: raw.slice(m[0].length) };
+}
+
+function slugify(t) {
+  const slug = t
+    .toLowerCase()
+    .replace(/<[^>]+>/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+  return /^[a-z]/.test(slug) ? slug : `s-${slug}`;
+}
+
+function renderMarkdown(body) {
+  const toc = [];
+  const renderer = new marked.Renderer();
+  renderer.heading = function ({ tokens, depth }) {
+    const text = this.parser.parseInline(tokens);
+    const id = slugify(text);
+    if (depth === 2 || depth === 3)
+      toc.push({ depth, id, text: text.replace(/<[^>]+>/g, "") });
+    return `<h${depth} id="${id}"><a class="anchor" href="#${id}" aria-label="Link to this section">#</a>${text}</h${depth}>\n`;
+  };
+  renderer.code = function ({ text, lang }) {
+    const cls = lang ? ` class="language-${escapeHtml(lang)}"` : "";
+    return `<pre class="code-block"><code${cls}>${escapeHtml(text)}</code></pre>\n`;
+  };
+  const baseTable = renderer.table.bind(renderer);
+  renderer.table = function (token) {
+    return `<div class="overflow-x-auto">${baseTable(token)}</div>`;
+  };
+  let html = marked.parse(
+    body
+      .replace("{{STATUS_TABLE}}", "@@STATUS_TABLE@@")
+      .replace("{{ERROR_TABLE}}", "@@ERROR_TABLE@@"),
+    { renderer, gfm: true },
+  );
+  html = html
+    .replace(/disabled=""/g, "disabled")
+    .replace(/href="\.\.\/([a-z-]+)\//g, `href="${BASE_PATH}docs/$1/`)
+    .replace(/<p>@@STATUS_TABLE@@<\/p>|@@STATUS_TABLE@@/, statusTableHtml())
+    .replace(/<p>@@ERROR_TABLE@@<\/p>|@@ERROR_TABLE@@/, errorTableHtml());
+  return { html, toc };
+}
+
+function buildDocs() {
+  if (!fs.existsSync(docsDir)) return;
+  docPages = fs
+    .readdirSync(docsDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => {
+      const { data, body } = parseFrontMatter(
+        fs.readFileSync(path.join(docsDir, f), "utf-8"),
+      );
+      return {
+        slug: path.basename(f, ".md"),
+        order: Number(data.order ?? 99),
+        title: data.title || f,
+        description: data.description || "",
+        section: data.section || "Guides",
+        body,
+      };
+    })
+    .sort((a, b) => a.order - b.order);
+
+  const sections = [...new Set(docPages.map((d) => d.section))];
+  for (const doc of docPages) {
+    const { html, toc } = renderMarkdown(doc.body);
+    const href = (d) =>
+      `${BASE_PATH}docs/${d.slug === "index" ? "" : d.slug + "/"}`;
+    const nav = sections
+      .map(
+        (sec) =>
+          `<div class="mb-5"><p class="text-xs font-semibold uppercase tracking-wide text-muted mb-2">${escapeHtml(sec)}</p><ul class="space-y-1">${docPages
+            .filter((d) => d.section === sec)
+            .map(
+              (d) =>
+                `<li><a href="${href(d)}" class="block px-2 py-1 rounded-md text-sm ${d.slug === doc.slug ? "bg-accent-surface font-semibold" : "text-secondary hover:text-primary"}"${d.slug === doc.slug ? ' aria-current="page"' : ""}>${escapeHtml(d.title)}</a></li>`,
+            )
+            .join("")}</ul></div>`,
+      )
+      .join("");
+    const tocHtml = toc.length
+      ? `<nav aria-label="On this page" class="hidden xl:block w-56 shrink-0"><div class="sticky top-24 text-sm"><p class="text-xs font-semibold uppercase tracking-wide text-muted mb-2">On this page</p><ul class="space-y-1">${toc
+          .map(
+            (t) =>
+              `<li class="${t.depth === 3 ? "pl-3" : ""}"><a class="text-secondary hover:text-primary" href="#${t.id}">${t.text}</a></li>`,
+          )
+          .join("")}</ul></div></nav>`
+      : "";
+    const canonical = `${SITE_URL}/docs/${doc.slug === "index" ? "" : doc.slug + "/"}`;
+    const page = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} — nagad-sdk</title>
+  <title>${escapeHtml(doc.title)} — nagad-sdk</title>
+  <meta name="description" content="${escapeHtml(doc.description)}">
+  <link rel="canonical" href="${canonical}">
   ${robotsMeta}
   <link rel="stylesheet" href="${BASE_PATH}css/output.css">
+  <link rel="stylesheet" href="${BASE_PATH}css/docs.css">
   ${inlineThemeScript}
 </head>
-<body class="antialiased min-h-screen flex flex-col justify-between">
+<body class="antialiased min-h-screen flex flex-col">
   ${navbarHtml}
-
-  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center">
-    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-teal-500/20 bg-teal-500/5 text-teal-700 dark:text-teal-300 text-xs font-medium mb-6">
-      <span>Phase C / D Upcoming</span>
-    </div>
-    <h1 class="text-3xl sm:text-4xl font-extrabold text-primary">${title}</h1>
-    <p class="mt-4 text-base text-secondary max-w-lg" data-lang-en="${descEn}" data-lang-bn="${descBn}">
-      ${descEn}
-    </p>
-    <div class="mt-8 flex gap-4">
-      <a href="${BASE_PATH}" class="px-5 py-2.5 rounded-xl border border-subtle bg-surface text-primary font-medium text-sm hover:bg-surface-elevated transition-colors" data-lang-en="Back to Home" data-lang-bn="হোমে ফিরুন">
-        Back to Home
-      </a>
-    </div>
-  </main>
-
+  <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex gap-8">
+    <aside class="hidden lg:block w-60 shrink-0" aria-label="Documentation"><div class="sticky top-24">${nav}</div></aside>
+    <main id="main-content" class="min-w-0 flex-1">
+      <details class="lg:hidden mb-6 rounded-lg border border-subtle p-3"><summary class="cursor-pointer text-sm font-semibold">Documentation menu</summary><div class="mt-3">${nav}</div></details>
+      <article class="docs-prose">${html}</article>
+      <p class="mt-10 text-xs text-muted">Found a mistake? <a class="underline" href="https://github.com/iamtashanto/Nagad/edit/main/website/docs/${doc.slug}.md">Edit this page on GitHub</a>. Unofficial community project, not affiliated with Nagad or Third Wave Technologies Ltd.</p>
+    </main>
+    ${tocHtml}
+  </div>
   ${footerHtml}
   <script type="module" src="${BASE_PATH}js/main.js"></script>
 </body>
 </html>`;
-
-  fs.writeFileSync(path.join(distDir, dirName, "index.html"), html, "utf-8");
+    const out = path.join(
+      distDir,
+      "docs",
+      doc.slug === "index" ? "" : doc.slug,
+      "index.html",
+    );
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, page, "utf-8");
+  }
+  fs.copyFileSync(
+    path.join(srcDir, "styles", "docs.css"),
+    path.join(distDir, "css", "docs.css"),
+  );
+  console.log(`   ✓ Rendered ${docPages.length} documentation pages`);
 }
 
+// Build clean placeholder landing pages for docs, playground, examples, changelog
 // Generate sitemap.xml
 function buildSitemap() {
-  const pages = ["", "docs/", "playground/", "examples/", "changelog/"];
+  const pages = [
+    "",
+    ...docPages.map((d) => (d.slug === "index" ? "docs/" : `docs/${d.slug}/`)),
+  ];
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pages
@@ -717,36 +856,7 @@ function writeNoJekyll() {
 // Execute builders
 buildHomePage();
 build404Page();
-buildPlaceholderSection(
-  "docs",
-  "Documentation Portal",
-  "Comprehensive guides, key generation workflows, error code reference, and framework adapters are being compiled for Phase C.",
-  "বিস্তারিত গাইড, চাবি তৈরি ও কনফিগারেশন, এরর কোড রেফারেন্স এবং ফ্রেমওয়ার্ক অ্যাডাপ্টার ফেজ সি-তে যুক্ত করা হচ্ছে।",
-);
-buildPlaceholderSection(
-  "playground",
-  "Interactive Simulator",
-  "Zero-network client-side checkout simulator with authentic modal states, theme tokens, and live code generator arrives in Phase D.",
-  "শূন্য নেটওয়ার্কে ক্লায়েন্ট সাইড চেকআউট সিমুলেটর, থিম টোকেন এবং লাইভ কোড জেনারেটর ফেজ ডি-তে যুক্ত হচ্ছে।",
-);
-buildPlaceholderSection(
-  "examples",
-  "Code Recipes",
-  "Ready-to-run backend and mobile recipes for Express, Next.js, Hono, Fastify, and React Native arrive in Phase D.",
-  "এক্সপ্রেস, নেক্সট জেএস, হোনো, ফাস্টিফাই এবং রিঅ্যাক্ট নেটিভের জন্য রান করার উপযোগী রেসিপি ফেজ ডি-তে আসছে।",
-);
-buildPlaceholderSection(
-  "changelog",
-  "Version History",
-  "Changelog and semantic version release notes tracked from initial alpha to v1.0.0 production.",
-  "আলফা থেকে ভি১.০.০ প্রোডাকশন পর্যন্ত সমস্ত ভার্সন হিস্ট্রি ও রিলিজ নোট এখানে সংরক্ষিত হবে।",
-);
-buildPlaceholderSection(
-  "api",
-  "API Reference",
-  "TypeDoc-generated typed API references for nagad-server and nagad-client.",
-  "টাইপডক দ্বারা জেনারেট করা nagad-server এবং nagad-client এর টাইপস্ক্রিপ্ট এপিআই রেফারেন্স।",
-);
+buildDocs();
 buildSitemap();
 buildRobotsTxt();
 writeNoJekyll();

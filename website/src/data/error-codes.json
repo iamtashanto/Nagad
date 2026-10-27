@@ -1,0 +1,68 @@
+[
+  {
+    "code": "16_0006_004",
+    "errorClass": "NagadInvalidMerchantError",
+    "meaning": "The merchant ID is not recognised.",
+    "fix": "Check merchantId and that the keys belong to the same environment as baseUrl."
+  },
+  {
+    "code": "16_0006_050",
+    "errorClass": "NagadInvalidMerchantError",
+    "meaning": "The merchant ID is not recognised.",
+    "fix": "Check merchantId and the environment."
+  },
+  {
+    "code": "16_0006_052",
+    "errorClass": "NagadInvalidMerchantError",
+    "meaning": "The merchant ID is not recognised.",
+    "fix": "Check merchantId and the environment."
+  },
+  {
+    "code": "16_0006_053",
+    "errorClass": "NagadInactiveMerchantError",
+    "meaning": "The merchant account is inactive.",
+    "fix": "Contact your Nagad account manager."
+  },
+  {
+    "code": "16_0006_061",
+    "errorClass": "NagadKeyError",
+    "meaning": "Invalid merchant key (the gateway could not use your public key).",
+    "fix": "Upload the matching public key in the merchant portal; check the private key you configured."
+  },
+  {
+    "code": "16_0006_064",
+    "errorClass": "NagadMissingHeaderError",
+    "meaning": "A mandatory request header is missing.",
+    "fix": "Set serverIp (the X-KM-IP-V4 header) and check any proxy that strips headers."
+  },
+  {
+    "code": "16_0006_068",
+    "errorClass": "NagadInvalidOrderIdError",
+    "meaning": "Invalid order id: must be 5-20 alphanumeric characters.",
+    "fix": "Use generateOrderId() or an order id that matches the rule."
+  },
+  {
+    "code": "16_0006_076",
+    "errorClass": "NagadClockSkewError",
+    "meaning": "The transaction time is outside the allowed window.",
+    "fix": "Fix the server clock (NTP). The SDK sends Bangladesh time (UTC+6)."
+  },
+  {
+    "code": "16_0006_080",
+    "errorClass": "NagadInvalidCurrencyError",
+    "meaning": "Invalid currency: only 050 (BDT) is accepted.",
+    "fix": "Do not override currency."
+  },
+  {
+    "code": "16_0006_081",
+    "errorClass": "NagadInvalidTimestampError",
+    "meaning": "Invalid date-time format.",
+    "fix": "Check any custom clock passed to the client."
+  },
+  {
+    "code": "16_0006_083",
+    "errorClass": "NagadDuplicateOrderIdError",
+    "meaning": "Duplicate order id on the same day.",
+    "fix": "Use a new order id for every attempt."
+  }
+]

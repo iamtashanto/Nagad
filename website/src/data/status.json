@@ -1,138 +1,182 @@
 {
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha",
   "releaseStage": "pre-release",
   "evidenceLevels": {
-    "verified-sandbox-e2e": "Validated against Nagad's sandbox in an owner-run end-to-end test (date recorded in docs).",
-    "experimental": "Implemented and covered by automated tests against the local simulator. Not yet validated against the live gateway.",
+    "stable": "Verified against the live gateway and covered by automated tests.",
+    "beta": "Covered by automated tests (and a real Redis in CI where relevant). Not validated against the live gateway.",
+    "experimental": "Implemented and tested against the simulator only. May change.",
     "planned": "Not implemented.",
-    "unverified": "Described in public specifications or community code but not implemented or not validated."
+    "unverified": "Not implemented or not verifiable."
   },
   "features": {
     "checkout_session_initialize": {
       "name": "Session Initialization (/check-out/initialize)",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Exercises RSA-PKCS1 encryption and RSA-SHA256 digital signature handshake."
+      "notes": "Exercises RSA-PKCS1 encryption and RSA-SHA256 digital signature handshake.",
+      "evidence": "automated tests against the local simulator; NOT TESTED against the live gateway (sandbox access needs onboarding credentials)"
     },
     "checkout_complete": {
       "name": "Order Placement & Complete (/check-out/complete)",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Completes handshake, exchanges challenge, and retrieves hosted checkout URL."
+      "notes": "Completes handshake, exchanges challenge, and retrieves hosted checkout URL.",
+      "evidence": "automated tests against the local simulator; NOT TESTED against the live gateway"
     },
     "payment_verification": {
       "name": "Payment Verification (/verify/payment)",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Mandatory server-to-server callback verification comparing order ID, amount, and signature."
+      "notes": "Mandatory server-to-server callback verification comparing order ID, amount, and signature.",
+      "evidence": "automated tests against the local simulator incl. tampered amount, order id and merchant id; NOT TESTED against the live gateway"
     },
     "payment_status_check": {
       "name": "Payment Status Check",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Server-side inquiry by paymentReferenceId with automated PII masking."
+      "notes": "Server-side inquiry by paymentReferenceId with automated PII masking.",
+      "evidence": "automated tests against the local simulator"
     },
     "crypto_provider_node": {
       "name": "Native Node.js Crypto Provider (OpenSSL 3)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
-      "notes": "Native node:crypto with RSA-SHA256 and startup PKCS#1 v1.5 capability canary."
+      "notes": "Native Node.js crypto provider. Requires Node >= 22.",
+      "evidence": "golden-vector tests; passes on Node 22 and 24, fails on Node 18/20 (OpenSSL 3.0 rejects RSA PKCS#1 v1.5 decryption)"
     },
     "crypto_sha1_fallback": {
       "name": "Legacy SHA1withRSA Signature Support",
-      "status": "unverified",
+      "status": "experimental",
       "package": "nagad-server",
-      "notes": "Documented in legacy PDF spec sections, but unused in vendor reference and live production."
+      "notes": "Documented in legacy PDF spec sections, but unused in vendor reference and live production.",
+      "evidence": "unit tests only; not validated with a real SHA-1 account"
     },
     "crypto_purejs_fallback": {
       "name": "Pure-JS PKCS#1 v1.5 Fallback Provider",
-      "status": "unverified",
+      "status": "experimental",
       "package": "nagad-server",
-      "notes": "Optional peer adapter for runtimes lacking OpenSSL implicit rejection."
+      "notes": "Optional peer adapter for runtimes lacking OpenSSL implicit rejection.",
+      "evidence": "NOT TESTED on Node 18/20"
     },
     "crypto_edge_runtimes": {
       "name": "Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge)",
-      "status": "unverified",
+      "status": "planned",
       "package": "nagad-server",
-      "notes": "WebCrypto lacks RSAES-PKCS1-v1_5 support; requires PureJs provider or backend proxy."
+      "notes": "WebCrypto lacks RSAES-PKCS1-v1_5 support; requires PureJs provider or backend proxy.",
+      "evidence": "Not supported: WebCrypto has no RSAES-PKCS1-v1_5"
     },
     "session_store_memory": {
       "name": "Memory Session Store (Dev-Only)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
-      "notes": "Atomic create-if-absent and 30s CAS lease claims for local development."
+      "notes": "Atomic create-if-absent and 30s CAS lease claims for local development.",
+      "evidence": "automated tests against the local simulator (race and replay tests)"
     },
     "session_store_redis": {
       "name": "Redis Session Store (Distributed Lua CAS)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
-      "notes": "Atomic Lua transitions, configurable TTLs, and 7-day replay prevention tombstones."
+      "notes": "Atomic Lua transitions, configurable TTLs, and 7-day replay prevention tombstones.",
+      "evidence": "automated tests against the local simulator with a real Redis service in CI"
     },
     "session_store_kv_rest": {
       "name": "Upstash / Generic KV Session Store",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "REST-based session persistence for edge/serverless runtimes without TCP connections."
+      "notes": "REST-based session persistence for edge/serverless runtimes without TCP connections.",
+      "evidence": "unit tests with a fake KV"
     },
     "express_adapter": {
       "name": "Express Adapter",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
-      "notes": "Thin wrapper around standard Web Request/Response handler."
+      "notes": "Thin wrapper around standard Web Request/Response handler.",
+      "evidence": "automated tests against the local simulator"
     },
     "nextjs_adapter": {
       "name": "Next.js App Router Adapter",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Route handlers and Server Action helpers."
+      "notes": "Route handlers and Server Action helpers.",
+      "evidence": "automated tests against the local simulator (smoke)"
     },
     "hono_adapter": {
       "name": "Hono Adapter",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Native Web Request/Response adapter for Hono."
+      "notes": "Native Web Request/Response adapter for Hono.",
+      "evidence": "automated tests against the local simulator (smoke)"
     },
     "react_hook": {
       "name": "React Hook (useNagadCheckout)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-client",
-      "notes": "Headless state machine hook."
+      "notes": "Headless state machine hook.",
+      "evidence": "behaviour tests: verify-before-success contract"
     },
     "react_native_webview": {
       "name": "React Native WebView Integration",
       "status": "experimental",
       "package": "nagad-client",
-      "notes": "In-app WebView checkout with hardware back-button and deep-link handling."
+      "notes": "In-app WebView checkout with hardware back-button and deep-link handling.",
+      "evidence": "callback interception tested without a device; NOT TESTED on a physical device"
     },
     "vue_composable": {
       "name": "Vue 3 Composable (useNagad)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-client",
-      "notes": "Reactive state machine composable."
+      "notes": "Reactive state machine composable.",
+      "evidence": "behaviour tests"
     },
     "angular_service": {
       "name": "Angular Service (NagadService)",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-client",
-      "notes": "Plain TypeScript service compatible across Angular 16-19 without ng-packagr lock-in."
+      "notes": "Plain TypeScript service compatible across Angular 16-19 without ng-packagr lock-in.",
+      "evidence": "behaviour tests"
     },
     "mock_simulator": {
       "name": "Local Test Simulator & Throwaway Key Generator",
       "status": "experimental",
       "package": "nagad-simulator",
-      "notes": "Zero-dependency HTTP simulator for deterministic CI and offline development."
+      "notes": "Zero-dependency HTTP simulator for deterministic CI and offline development.",
+      "evidence": "used by the test-suite; not published to npm"
     },
     "refund": {
       "name": "Programmatic Refund API",
-      "status": "unverified",
+      "status": "planned",
       "package": "nagad-server",
-      "notes": "Not supported: use the Nagad merchant portal. raw() escape hatch available."
+      "notes": "Not supported: use the Nagad merchant portal. raw() escape hatch available.",
+      "evidence": "Not implemented: no verifiable public specification. The raw() escape hatch is not provided for it."
     },
     "webhook_ipn": {
       "name": "Server-to-Server Webhook / IPN",
-      "status": "unverified",
+      "status": "planned",
       "package": "nagad-server",
-      "notes": "Not supported (unverified in vendor reference and live production)."
+      "notes": "Not supported (unverified in vendor reference and live production).",
+      "evidence": "Not implemented: no public specification"
+    },
+    "http_handler": {
+      "name": "HTTP handler (create, callback)",
+      "status": "beta",
+      "package": "nagad-server",
+      "notes": "The server decides amount and order; callback origins are allowlisted; unknown sessions fail closed; minimal responses.",
+      "evidence": "automated tests against the local simulator: tampering, allowlist, fail-closed, error mapping"
+    },
+    "proxy_egress": {
+      "name": "Forward-proxy egress (fixed IP)",
+      "status": "experimental",
+      "package": "nagad-server",
+      "notes": "createForwardProxyFetch for serverless platforms that need a whitelisted static IP.",
+      "evidence": "unit tests; NOT TESTED against a real proxy"
+    },
+    "svelte_binding": {
+      "name": "Svelte store",
+      "status": "beta",
+      "package": "nagad-client",
+      "notes": "createNagadStore.",
+      "evidence": "behaviour tests"
     }
-  }
+  },
+  "lastUpdated": "2026-10-27"
 }
