@@ -1,6 +1,6 @@
 # Nagad SDK Monorepo
 
-> Alpha, zero-runtime-dependency, open-source Nagad Payment Gateway SDK for Node.js, Web, and Mobile.
+> Zero-runtime-dependency, open-source Nagad Payment Gateway SDK for Node.js, Web, and Mobile.
 
 [![CI](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml/badge.svg)](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml)
 [![Website](https://img.shields.io/badge/docs-website-teal.svg)](https://iamtashanto.github.io/Nagad/)
@@ -18,9 +18,9 @@ This repository is an **unofficial**, community-driven open-source project. It i
 
 | Package                                       | Description                                                                             |     Version     | Links                                                                                                     |
 | :-------------------------------------------- | :-------------------------------------------------------------------------------------- | :-------------: | :-------------------------------------------------------------------------------------------------------- |
-| [`nagad-server`](packages/nagad-server)       | Server SDK with zero runtime dependencies, atomic SessionStores, and framework adapters | `0.1.0-alpha.1` | [![npm](https://img.shields.io/npm/v/nagad-server/alpha.svg)](https://www.npmjs.com/package/nagad-server) |
-| [`nagad-client`](packages/nagad-client)       | Headless client SDK for React, React Native, Vue, Svelte, Angular, and Vanilla JS       | `0.1.0-alpha.1` | [![npm](https://img.shields.io/npm/v/nagad-client/alpha.svg)](https://www.npmjs.com/package/nagad-client) |
-| [`nagad-simulator`](packages/nagad-simulator) | Offline mock Nagad server with throwaway test RSA keys for deterministic CI             | `0.1.0-alpha.1` | Internal test package                                                                                     |
+| [`nagad-server`](packages/nagad-server)       | Server SDK with zero runtime dependencies, atomic SessionStores, and framework adapters | `0.1.0` | [![npm](https://img.shields.io/npm/v/nagad-server.svg)](https://www.npmjs.com/package/nagad-server) |
+| [`nagad-client`](packages/nagad-client)       | Headless client SDK for React, React Native, Vue, Svelte, Angular, and Vanilla JS       | `0.1.0` | [![npm](https://img.shields.io/npm/v/nagad-client.svg)](https://www.npmjs.com/package/nagad-client) |
+| [`nagad-simulator`](packages/nagad-simulator) | Offline mock Nagad server with throwaway test RSA keys for deterministic CI             | `0.1.0` | Internal test package (private)                                                                                     |
 
 ---
 
@@ -61,7 +61,7 @@ This repository is an **unofficial**, community-driven open-source project. It i
 ### 1. Server (`nagad-server`)
 
 ```bash
-npm install nagad-server@alpha
+npm install nagad-server
 ```
 
 ```typescript
@@ -78,7 +78,7 @@ export const nagad = createNagad({
 ### 2. Client (`nagad-client`)
 
 ```bash
-npm install nagad-client@alpha
+npm install nagad-client
 ```
 
 ```tsx

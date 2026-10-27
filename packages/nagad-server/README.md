@@ -7,7 +7,7 @@ Server SDK for accepting [Nagad](https://nagad.com.bd) payments from Node.js: si
 [![license](https://img.shields.io/npm/l/nagad-server)](https://github.com/iamtashanto/Nagad/blob/main/LICENSE)
 
 > **Unofficial.** Not affiliated with, endorsed by, or sponsored by Nagad or Third Wave Technologies Ltd.
-> **Pre-release:** nothing has been run against the live Nagad gateway by the maintainers yet. See the status table below.
+> **First release:** nothing has been run against the live Nagad gateway by the maintainers yet. See the status table below.
 
 **Documentation:** <https://nagad-sdk.tashanto.com/docs/> · **Issues:** <https://github.com/iamtashanto/Nagad/issues> · **Releases:** <https://github.com/iamtashanto/Nagad/releases>
 

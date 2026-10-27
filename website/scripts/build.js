@@ -76,7 +76,7 @@ const navbarHtml = `
         </div>
         <div class="flex items-baseline space-x-1.5">
           <span class="text-xl font-bold tracking-tight text-primary font-mono">nagad<span class="text-teal-600 dark:text-teal-400">-sdk</span></span>
-          <span class="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">Alpha</span>
+          <span class="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">v0.1.0</span>
         </div>
       </a>
     </div>
@@ -213,12 +213,12 @@ function buildHomePage() {
 
   ${navbarHtml}
 
-  <!-- Pre-release Alpha Notification Banner -->
+  <!-- Release notice -->
   <aside class="bg-teal-950/40 border-b border-teal-500/20 text-teal-200 text-xs py-2 px-4 text-center" aria-label="Pre-release Notice">
     <div class="max-w-7xl mx-auto flex items-center justify-center space-x-2">
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">Pre-release / Alpha</span>
-      <span data-lang-en="nagad-server and nagad-client are currently under active design and initial development. Packages are not yet published to npm." data-lang-bn="nagad-server এবং nagad-client বর্তমানে সক্রিয় ডিজাইন ও প্রাথমিক ডেভেলপমেন্টে রয়েছে। প্যাকেজগুলো এখনও npm-এ প্রকাশিত হয়নি।">
-        nagad-server and nagad-client are currently under active design and initial development. Packages are not yet published to npm.
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">v0.1.0</span>
+      <span data-lang-en="First release. Not yet validated against the live Nagad gateway; see the feature status." data-lang-bn="nagad-server এবং nagad-client বর্তমানে সক্রিয় ডিজাইন ও প্রাথমিক ডেভেলপমেন্টে রয়েছে। প্যাকেজগুলো এখনও npm-এ প্রকাশিত হয়নি।">
+        First release. Not yet validated against the live Nagad gateway; see the feature status.
       </span>
     </div>
   </aside>
@@ -263,10 +263,10 @@ function buildHomePage() {
 
             <!-- Install snippets -->
             <div class="mt-3 flex items-center justify-between font-mono text-sm px-2 py-1.5 rounded-lg bg-surface-elevated">
-              <span id="install-pnpm" data-pm-snippet="pnpm" class="text-primary truncate">pnpm add nagad-server@alpha nagad-client@alpha</span>
-              <span id="install-npm" data-pm-snippet="npm" class="text-primary truncate hidden">npm install nagad-server@alpha nagad-client@alpha</span>
-              <span id="install-yarn" data-pm-snippet="yarn" class="text-primary truncate hidden">yarn add nagad-server@alpha nagad-client@alpha</span>
-              <span id="install-bun" data-pm-snippet="bun" class="text-primary truncate hidden">bun add nagad-server@alpha nagad-client@alpha</span>
+              <span id="install-pnpm" data-pm-snippet="pnpm" class="text-primary truncate">pnpm add nagad-server nagad-client</span>
+              <span id="install-npm" data-pm-snippet="npm" class="text-primary truncate hidden">npm install nagad-server nagad-client</span>
+              <span id="install-yarn" data-pm-snippet="yarn" class="text-primary truncate hidden">yarn add nagad-server nagad-client</span>
+              <span id="install-bun" data-pm-snippet="bun" class="text-primary truncate hidden">bun add nagad-server nagad-client</span>
 
               <button type="button" data-copy-target="install-pnpm" class="ml-2 p-1.5 rounded hover:bg-surface text-secondary transition-colors shrink-0" aria-label="Copy install command">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +282,7 @@ function buildHomePage() {
           <a href="${BASE_PATH}docs/" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900" data-lang-en="Read Architecture & Docs" data-lang-bn="আর্কিটেকচার ও ডকুমেন্টেশন">
             Read Architecture & Docs
           </a>
-          <a href="${BASE_PATH}playground/" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-subtle bg-surface hover:bg-surface-elevated text-primary font-medium transition-colors" data-lang-en="Explore Payment Flow" data-lang-bn="পেমেন্ট ফ্লো দেখুন">
+          <a href="${BASE_PATH}docs/concepts/" class="w-full sm:w-auto px-6 py-3 rounded-xl border border-subtle bg-surface hover:bg-surface-elevated text-primary font-medium transition-colors" data-lang-en="Explore Payment Flow" data-lang-bn="পেমেন্ট ফ্লো দেখুন">
             Explore Payment Flow
           </a>
         </div>

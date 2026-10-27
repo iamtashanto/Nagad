@@ -1,6 +1,6 @@
 {
   "name": "nagad-simulator",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0",
   "description": "Local test simulator and throwaway RSA key generator for Nagad Payment Gateway",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -20,5 +20,6 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "private": true
 }

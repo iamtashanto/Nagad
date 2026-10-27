@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0-alpha",
-  "releaseStage": "pre-release",
+  "version": "0.1.0",
+  "releaseStage": "first-release",
   "evidenceLevels": {
     "stable": "Verified against the live gateway and covered by automated tests.",
     "beta": "Covered by automated tests (and a real Redis in CI where relevant). Not validated against the live gateway.",

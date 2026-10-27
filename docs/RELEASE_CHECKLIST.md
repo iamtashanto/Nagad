@@ -1,8 +1,7 @@
 # Release checklist
 
-Release ladder: `0.1.0-alpha.2` → `0.1.0-beta.1` → `0.1.0-rc.1` → stable. Publishing happens only through
-`.github/workflows/release.yml` (manual, protected `npm-publish` environment, npm provenance). The `latest`
-dist-tag moves to a version only when every **stable gate** below is checked.
+Version history: `0.1.0-alpha.1` (deprecated) → `0.1.0` (first release, 2026-10-27). Publishing happens only through
+`.github/workflows/release.yml` (manual, protected `npm-publish` environment, npm provenance). The stable gates below are the bar for calling a release production-proven (1.0.0); `0.1.0` ships with the open gates listed in its release notes.
 
 ## Automated gates (2026-10-27, local runs; CI links added after each push)
 
@@ -32,7 +31,7 @@ dist-tag moves to a version only when every **stable gate** below is checked.
 | npm trusted publishing configured, 2FA on                                           | Owner to configure                              |
 | Bangla copy reviewed by a native speaker                                            | Open                                            |
 
-Without all stable gates the website and READMEs keep the pre-release banner and the packages stay on a pre-release tag.
+Until all stable gates pass, the website and READMEs state that the SDK is not yet validated against the live gateway, and the version stays below 1.0.0.
 
 ## Support policy (after stable)
 

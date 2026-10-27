@@ -1,6 +1,6 @@
 {
   "name": "nagad-server",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0",
   "description": "Zero-runtime-dependency Nagad payment gateway SDK for Node.js and TypeScript",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -117,7 +117,7 @@
     "fintech"
   ],
   "license": "MIT",
-    "author": "Md Tanvir Ahamed Shanto (https://github.com/iamtashanto)",
+  "author": "Md Tanvir Ahamed Shanto (https://github.com/iamtashanto)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iamtashanto/Nagad.git",
