@@ -89,7 +89,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "build": "tsup",
@@ -97,6 +97,11 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@hono/node-server": "1",
+    "express": "4",
+    "fastify": "5",
+    "hono": "4",
+    "koa": "2",
     "nagad-simulator": "workspace:*"
   },
   "peerDependencies": {
