@@ -1,7 +1,7 @@
 {
   "name": "nagad-client",
   "version": "0.1.0-alpha.1",
-  "description": "Universal, headless and multi-framework client SDK for Nagad payment gateway",
+  "description": "Headless, multi-framework client SDK for Nagad payments",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -114,6 +114,7 @@
   },
   "keywords": [
     "nagad",
+    "bangladesh",
     "payment",
     "checkout",
     "react",
@@ -123,5 +124,18 @@
     "angular",
     "headless"
   ],
-  "license": "MIT"
+  "author": "Md Tanvir Ahamed Shanto (https://github.com/iamtashanto)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamtashanto/Nagad.git",
+    "directory": "packages/nagad-client"
+  },
+  "homepage": "https://iamtashanto.github.io/Nagad/docs/",
+  "bugs": {
+    "url": "https://github.com/iamtashanto/Nagad/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

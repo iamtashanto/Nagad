@@ -24,6 +24,38 @@ This repository is an **unofficial**, community-driven open-source project. It i
 
 ---
 
+## Feature status
+
+<!-- status:start -->
+<!-- Generated from website/src/data/status.json. Do not edit by hand. -->
+| Feature | Status | Evidence |
+| --- | --- | --- |
+| Session Initialization (/check-out/initialize) | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway (sandbox access needs onboarding credentials) |
+| Order Placement & Complete (/check-out/complete) | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway |
+| Payment Verification (/verify/payment) | Experimental | automated tests against the local simulator incl. tampered amount, order id and merchant id; NOT TESTED against the live gateway |
+| Payment Status Check | Experimental | automated tests against the local simulator |
+| Native Node.js Crypto Provider (OpenSSL 3) | Beta | golden-vector tests; passes on Node 22 and 24, fails on Node 18/20 (OpenSSL 3.0 rejects RSA PKCS#1 v1.5 decryption) |
+| Legacy SHA1withRSA Signature Support | Experimental | unit tests only; not validated with a real SHA-1 account |
+| Pure-JS PKCS#1 v1.5 Fallback Provider | Experimental | NOT TESTED on Node 18/20 |
+| Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge) | Planned | Not supported: WebCrypto has no RSAES-PKCS1-v1_5 |
+| Memory Session Store (Dev-Only) | Beta | automated tests against the local simulator (race and replay tests) |
+| Redis Session Store (Distributed Lua CAS) | Beta | automated tests against the local simulator with a real Redis service in CI |
+| Upstash / Generic KV Session Store | Experimental | unit tests with a fake KV |
+| Express Adapter | Beta | automated tests against the local simulator |
+| Next.js App Router Adapter | Experimental | automated tests against the local simulator (smoke) |
+| Hono Adapter | Experimental | automated tests against the local simulator (smoke) |
+| React Hook (useNagadCheckout) | Beta | behaviour tests: verify-before-success contract |
+| React Native WebView Integration | Experimental | callback interception tested without a device; NOT TESTED on a physical device |
+| Vue 3 Composable (useNagad) | Beta | behaviour tests |
+| Angular Service (NagadService) | Beta | behaviour tests |
+| Local Test Simulator & Throwaway Key Generator | Experimental | used by the test-suite; not published to npm |
+| Programmatic Refund API | Planned | Not implemented: no verifiable public specification. The raw() escape hatch is not provided for it. |
+| Server-to-Server Webhook / IPN | Planned | Not implemented: no public specification |
+| HTTP handler (create, callback) | Beta | automated tests against the local simulator: tampering, allowlist, fail-closed, error mapping |
+| Forward-proxy egress (fixed IP) | Experimental | unit tests; NOT TESTED against a real proxy |
+| Svelte store | Beta | behaviour tests |
+<!-- status:end -->
+
 ## Quickstart
 
 ### 1. Server (`nagad-server`)

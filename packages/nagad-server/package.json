@@ -116,5 +116,18 @@
     "dfs",
     "fintech"
   ],
-  "license": "MIT"
+  "license": "MIT",
+    "author": "Md Tanvir Ahamed Shanto (https://github.com/iamtashanto)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamtashanto/Nagad.git",
+    "directory": "packages/nagad-server"
+  },
+  "homepage": "https://nagad-sdk.tashanto.com/docs/",
+  "bugs": {
+    "url": "https://github.com/iamtashanto/Nagad/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
