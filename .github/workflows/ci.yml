@@ -179,8 +179,8 @@ jobs:
       - name: Pack tarballs
         run: |
           mkdir -p /tmp/tarballs
-          pnpm --filter nagad-server pack --pack-destination /tmp/tarballs
-          pnpm --filter nagad-client pack --pack-destination /tmp/tarballs
+          pnpm -C packages/nagad-server pack --pack-destination /tmp/tarballs
+          pnpm -C packages/nagad-client pack --pack-destination /tmp/tarballs
 
       - name: Smoke test ESM and CJS imports in clean temp project
         run: |
