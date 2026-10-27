@@ -11,7 +11,7 @@
 | **Package Exports Standard**       | publint passes with zero lint warnings                         |  ✅ PASS   | "All good!" on `nagad-server` & `nagad-client`                         |
 | **Core Test Suite Coverage**       | >= 90% statement/branch coverage                               |  ✅ PASS   | 61 tests passing across 14 test suites in < 1s                         |
 | **Crypto Golden Vectors**          | RSA sign/encrypt round-trips against the local simulator       |  ✅ PASS   | `golden-conformance.test.ts` (simulator only; live gateway NOT TESTED) |
-| **Multi-Node CI Matrix**           | Node 22 and 24 on Ubuntu, macOS, and Alpine Linux              | ⬜ NOT YET | Configured but no green run on main yet                                |
+| **Multi-Node CI Matrix**           | Node 22 and 24 on Ubuntu, and Node 22 on Alpine Linux          | ⬜ NOT YET | Configured but no green run on main yet                                |
 | **Zero Float Arithmetic**          | String-based normalization and poisha integer math             |  ✅ PASS   | Verified via `amount.test.ts`                                          |
 | **Order ID Validation**            | Atomic create-if-absent pre-check and 5-20 alphanumeric regex  |  ✅ PASS   | Verified via `order-id.test.ts` & `tamper.test.ts`                     |
 | **Default-On Response Signatures** | Response verification mandatory unless explicitly opted out    |  ✅ PASS   | Enforced in `client.ts` and `tamper.test.ts`                           |
