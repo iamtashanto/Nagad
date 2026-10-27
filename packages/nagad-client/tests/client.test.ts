@@ -26,6 +26,9 @@ describe("Nagad Client State Machine & Bindings", () => {
     expect(result.status).toBe("Success");
     expect(result.paymentRefId).toBe("PAY_123");
     expect(result.orderId).toBe("ORD_999");
+    expect(checkout.getState()).toBe("verifying");
+    expect(successFired).toBe(false);
+    checkout.confirmSuccess();
     expect(checkout.getState()).toBe("success");
     expect(successFired).toBe(true);
   });
@@ -53,6 +56,8 @@ describe("Nagad Client State Machine & Bindings", () => {
 
     expect(currentState).toBe("idle");
     store.handleCallback("?payment_ref_id=PAY_456&status=Success");
+    expect(currentState).toBe("verifying");
+    store.confirmSuccess();
     expect(currentState).toBe("success");
     unsub();
   });
@@ -62,7 +67,7 @@ describe("Nagad Client State Machine & Bindings", () => {
     expect(getState()).toBe("idle");
 
     handleCallback({ payment_ref_id: "PAY_VUE", status: "Success" });
-    expect(getState()).toBe("success");
+    expect(getState()).toBe("verifying");
   });
 
   it("works in Angular service", () => {
@@ -70,6 +75,8 @@ describe("Nagad Client State Machine & Bindings", () => {
     expect(service.getState()).toBe("idle");
 
     service.handleCallback("?payment_ref_id=PAY_NG&status=Success");
+    expect(service.getState()).toBe("verifying");
+    service.confirmSuccess();
     expect(service.getState()).toBe("success");
   });
 
@@ -93,6 +100,9 @@ describe("Nagad Client State Machine & Bindings", () => {
       url: "https://myapp.com/payment/callback?payment_ref_id=PAY_RN&status=Success",
     });
     expect(callbackNav).toBe(false);
+    expect(success).toBe(false);
+    expect(handler.machine.getState()).toBe("verifying");
+    handler.machine.confirmSuccess();
     expect(success).toBe(true);
 
     // onShouldStartLoadWithRequest interceptor
@@ -125,6 +135,8 @@ describe("Nagad Client State Machine & Bindings", () => {
         url: "https://myapp.com/payment/callback?payment_ref_id=PAY_REQ&status=Success",
       }),
     ).toBe(false);
+    expect(requestInterceptSuccess).toBe(false);
+    requestHandler.machine.confirmSuccess();
     expect(requestInterceptSuccess).toBe(true);
   });
 });

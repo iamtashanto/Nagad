@@ -33,6 +33,9 @@ export function useNagadCheckout(options: CheckoutOptions = {}) {
     [machine],
   );
 
+  const confirmSuccess = useCallback(() => machine.confirmSuccess(), [machine]);
+  const confirmPending = useCallback(() => machine.confirmPending(), [machine]);
+
   const reset = useCallback(() => {
     machine.reset();
   }, [machine]);
@@ -45,9 +48,12 @@ export function useNagadCheckout(options: CheckoutOptions = {}) {
       state === "redirecting" ||
       state === "verifying",
     isSuccess: state === "success",
+    isPending: state === "pending",
     isError: state === "error",
     initiate,
     handleCallback,
+    confirmSuccess,
+    confirmPending,
     reset,
   };
 }

@@ -20,6 +20,8 @@ export function createNagadStore(options: CheckoutOptions = {}) {
     handleCallback: (
       params: string | URLSearchParams | Record<string, string>,
     ) => machine.handleCallback(params),
+    confirmSuccess: () => machine.confirmSuccess(),
+    confirmPending: () => machine.confirmPending(),
     reset: () => machine.reset(),
   };
 }

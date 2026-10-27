@@ -33,6 +33,14 @@ export class NagadService {
     return this.machine.handleCallback(params);
   }
 
+  public confirmSuccess(): void {
+    this.machine.confirmSuccess();
+  }
+
+  public confirmPending(): void {
+    this.machine.confirmPending();
+  }
+
   public reset(): void {
     this.machine.reset();
   }
