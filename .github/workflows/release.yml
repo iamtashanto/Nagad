@@ -1,0 +1,58 @@
+# Manual release to npm with provenance (trusted publishing). Nothing here runs automatically.
+#
+# One-time setup (owner):
+#   1. npmjs.com -> each package -> Settings -> Trusted Publisher: GitHub Actions,
+#      owner iamtashanto, repository Nagad, workflow release.yml, environment npm-publish.
+#   2. GitHub -> Settings -> Environments -> create "npm-publish" with Required reviewers = you.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "npm dist-tag (alpha, beta, rc or latest)"
+        required: true
+        default: "alpha"
+        type: choice
+        options: [alpha, beta, rc, latest]
+      dry_run:
+        description: "Dry run (npm publish --dry-run)"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: npm-publish # protected: requires your approval
+    permissions:
+      contents: write # GitHub Release
+      id-token: write # npm provenance / trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Publish
+        run: |
+          flags="--access public --provenance --tag ${{ inputs.tag }} --no-git-checks"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then flags="$flags --dry-run"; fi
+          pnpm --filter "./packages/*" publish $flags
+      - name: GitHub Release
+        if: ${{ inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          v=$(node -p "require('./packages/nagad-server/package.json').version")
+          pre=""; if [ "${{ inputs.tag }}" != "latest" ]; then pre="--prerelease"; fi
+          gh release create "v$v" --title "v$v" --generate-notes $pre

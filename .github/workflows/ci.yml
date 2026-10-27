@@ -68,6 +68,14 @@ jobs:
           npx -y publint packages/nagad-server
           npx -y publint packages/nagad-client
 
+      - name: Status tables are up to date
+        run: node website/scripts/gen-status.mjs --check
+
+      - name: Build and check the documentation website
+        run: |
+          pnpm run build:website
+          pnpm run check:website
+
       - name: Audit TypeScript types resolution with @arethetypeswrong/cli
         run: |
           npx -y @arethetypeswrong/cli --pack packages/nagad-server
