@@ -127,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ["20-alpine", "22-alpine"]
+        node-version: ["22-alpine"]
     container:
       image: node:${{ matrix.node-version }}
     steps:
