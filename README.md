@@ -16,11 +16,11 @@ This repository is an **unofficial**, community-driven open-source project. It i
 
 ## Packages
 
-| Package                                       | Description                                                                             |     Version     | Links                                                                                                     |
-| :-------------------------------------------- | :-------------------------------------------------------------------------------------- | :-------------: | :-------------------------------------------------------------------------------------------------------- |
+| Package                                       | Description                                                                             | Version | Links                                                                                               |
+| :-------------------------------------------- | :-------------------------------------------------------------------------------------- | :-----: | :-------------------------------------------------------------------------------------------------- |
 | [`nagad-server`](packages/nagad-server)       | Server SDK with zero runtime dependencies, atomic SessionStores, and framework adapters | `0.1.0` | [![npm](https://img.shields.io/npm/v/nagad-server.svg)](https://www.npmjs.com/package/nagad-server) |
 | [`nagad-client`](packages/nagad-client)       | Headless client SDK for React, React Native, Vue, Svelte, Angular, and Vanilla JS       | `0.1.0` | [![npm](https://img.shields.io/npm/v/nagad-client.svg)](https://www.npmjs.com/package/nagad-client) |
-| [`nagad-simulator`](packages/nagad-simulator) | Offline mock Nagad server with throwaway test RSA keys for deterministic CI             | `0.1.0` | Internal test package (private)                                                                                     |
+| [`nagad-simulator`](packages/nagad-simulator) | Offline mock Nagad server with throwaway test RSA keys for deterministic CI             | `0.1.0` | Internal test package (private)                                                                     |
 
 ---
 
@@ -28,35 +28,37 @@ This repository is an **unofficial**, community-driven open-source project. It i
 
 <!-- status:start -->
 <!-- Generated from website/src/data/status.json. Do not edit by hand. -->
-| Feature | Status | Evidence |
-| --- | --- | --- |
-| Session Initialization (/check-out/initialize) | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway (sandbox access needs onboarding credentials) |
-| Order Placement & Complete (/check-out/complete) | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway |
-| Payment Verification (/verify/payment) | Experimental | automated tests against the local simulator incl. tampered amount, order id and merchant id; NOT TESTED against the live gateway |
-| Payment Status Check | Experimental | automated tests against the local simulator |
-| Native Node.js Crypto Provider (OpenSSL 3) | Beta | golden-vector tests; passes on Node 22 and 24; on Node 18.20 and 20.20 (OpenSSL 3.0) node:crypto rejects RSA PKCS#1 v1.5 decryption, so those tests are skipped there |
-| Legacy SHA1withRSA Signature Support | Experimental | unit tests only; not validated with a real SHA-1 account |
-| Pure-JS PKCS#1 v1.5 decryption (automatic fallback) | Beta | tests on Node 20 (full suite) and a full create+verify smoke run on Node 18.20.8; compared with node:crypto ciphertexts; NOT TESTED against the live gateway |
-| Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge) | Planned | Not supported: WebCrypto has no RSAES-PKCS1-v1_5 |
-| Memory Session Store (Dev-Only) | Beta | automated tests against the local simulator (race and replay tests) |
-| Redis Session Store (Distributed Lua CAS) | Beta | automated tests against the local simulator with a real Redis service in CI |
-| Upstash / Generic KV Session Store | Experimental | unit tests with a fake KV |
-| Express Adapter | Beta | tests inside real Express (with and without a body parser) through create and verify |
-| Next.js App Router Adapter | Beta | tests: route handler answers create; web-standard Request/Response |
-| Hono Adapter | Beta | tests inside real Hono (node-server) through create and verify |
-| React Hook (useNagadCheckout) | Beta | behaviour tests: verify-before-success contract |
-| React Native WebView Integration | Experimental | callback interception tested without a device; NOT TESTED on a physical device |
-| Vue 3 Composable (useNagad) | Beta | behaviour tests |
-| Angular Service (NagadService) | Beta | behaviour tests |
-| Local Test Simulator & Throwaway Key Generator | Experimental | used by the test-suite; not published to npm |
-| Programmatic Refund API | Planned | Not implemented: no verifiable public specification. The raw() escape hatch is not provided for it. |
-| Server-to-Server Webhook / IPN | Planned | Not implemented: no public specification |
-| HTTP handler (create, callback) | Beta | automated tests against the local simulator: tampering, allowlist, fail-closed, error mapping |
-| Forward-proxy egress (fixed IP) | Experimental | unit tests; NOT TESTED against a real proxy |
-| Svelte store | Beta | behaviour tests |
-| Fastify plugin | Beta | tests inside real Fastify through create and verify |
-| Koa middleware | Beta | tests inside real Koa through create and verify |
-| Remix, SvelteKit, Astro, Nitro and Nest adapters | Experimental | Remix, SvelteKit and Astro: Request/Response tests; Nitro and Nest: NOT TESTED in a real framework |
+
+| Feature                                                      | Status       | Evidence                                                                                                                                                              |
+| ------------------------------------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Session Initialization (/check-out/initialize)               | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway (sandbox access needs onboarding credentials)                                        |
+| Order Placement & Complete (/check-out/complete)             | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway                                                                                      |
+| Payment Verification (/verify/payment)                       | Experimental | automated tests against the local simulator incl. tampered amount, order id and merchant id; NOT TESTED against the live gateway                                      |
+| Payment Status Check                                         | Experimental | automated tests against the local simulator                                                                                                                           |
+| Native Node.js Crypto Provider (OpenSSL 3)                   | Beta         | golden-vector tests; passes on Node 22 and 24; on Node 18.20 and 20.20 (OpenSSL 3.0) node:crypto rejects RSA PKCS#1 v1.5 decryption, so those tests are skipped there |
+| Legacy SHA1withRSA Signature Support                         | Experimental | unit tests only; not validated with a real SHA-1 account                                                                                                              |
+| Pure-JS PKCS#1 v1.5 decryption (automatic fallback)          | Beta         | tests on Node 20 (full suite) and a full create+verify smoke run on Node 18.20.8; compared with node:crypto ciphertexts; NOT TESTED against the live gateway          |
+| Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge) | Planned      | Not supported: WebCrypto has no RSAES-PKCS1-v1_5                                                                                                                      |
+| Memory Session Store (Dev-Only)                              | Beta         | automated tests against the local simulator (race and replay tests)                                                                                                   |
+| Redis Session Store (Distributed Lua CAS)                    | Beta         | automated tests against the local simulator with a real Redis service in CI                                                                                           |
+| Upstash / Generic KV Session Store                           | Experimental | unit tests with a fake KV                                                                                                                                             |
+| Express Adapter                                              | Beta         | tests inside real Express (with and without a body parser) through create and verify                                                                                  |
+| Next.js App Router Adapter                                   | Beta         | tests: route handler answers create; web-standard Request/Response                                                                                                    |
+| Hono Adapter                                                 | Beta         | tests inside real Hono (node-server) through create and verify                                                                                                        |
+| React Hook (useNagadCheckout)                                | Beta         | behaviour tests: verify-before-success contract                                                                                                                       |
+| React Native WebView Integration                             | Experimental | callback interception tested without a device; NOT TESTED on a physical device                                                                                        |
+| Vue 3 Composable (useNagad)                                  | Beta         | behaviour tests                                                                                                                                                       |
+| Angular Service (NagadService)                               | Beta         | behaviour tests                                                                                                                                                       |
+| Local Test Simulator & Throwaway Key Generator               | Experimental | used by the test-suite; not published to npm                                                                                                                          |
+| Programmatic Refund API                                      | Planned      | Not implemented: no verifiable public specification. The raw() escape hatch is not provided for it.                                                                   |
+| Server-to-Server Webhook / IPN                               | Planned      | Not implemented: no public specification                                                                                                                              |
+| HTTP handler (create, callback)                              | Beta         | automated tests against the local simulator: tampering, allowlist, fail-closed, error mapping                                                                         |
+| Forward-proxy egress (fixed IP)                              | Experimental | unit tests; NOT TESTED against a real proxy                                                                                                                           |
+| Svelte store                                                 | Beta         | behaviour tests                                                                                                                                                       |
+| Fastify plugin                                               | Beta         | tests inside real Fastify through create and verify                                                                                                                   |
+| Koa middleware                                               | Beta         | tests inside real Koa through create and verify                                                                                                                       |
+| Remix, SvelteKit, Astro, Nitro and Nest adapters             | Experimental | Remix, SvelteKit and Astro: Request/Response tests; Nitro and Nest: NOT TESTED in a real framework                                                                    |
+
 <!-- status:end -->
 
 ## Quickstart
@@ -116,3 +118,7 @@ function Checkout() {
 ## License
 
 MIT © [Md Tanvir Ahamed Shanto](https://github.com/iamtashanto)
+
+---
+
+Developed by [TA Shanto](https://tashanto.com) · [npm](https://www.npmjs.com/package/nagad-server) · [GitHub](https://github.com/iamtashanto/Nagad)

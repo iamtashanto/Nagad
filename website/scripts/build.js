@@ -158,6 +158,11 @@ const footerHtml = `
         <ul class="space-y-2.5 text-sm text-secondary">
           <li><a href="${BASE_PATH}docs/" class="hover:text-primary transition-colors" data-lang-en="Documentation" data-lang-bn="ডকুমেন্টেশন">Documentation</a></li>
           <li><a href="${BASE_PATH}docs/changelog/" class="hover:text-primary transition-colors" data-lang-en="Changelog" data-lang-bn="পরিবর্তন তালিকা">Changelog</a></li>
+          <li><a href="https://www.npmjs.com/package/nagad-server" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">npm: nagad-server</a></li>
+          <li><a href="https://www.npmjs.com/package/nagad-client" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">npm: nagad-client</a></li>
+          <li><a href="https://github.com/iamtashanto/Nagad" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">GitHub repository</a></li>
+          <li><a href="https://github.com/iamtashanto/Nagad/releases" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">GitHub releases</a></li>
+          <li><a href="https://github.com/iamtashanto/Nagad/issues" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">Report an issue</a></li>
         </ul>
       </div>
 
@@ -174,7 +179,7 @@ const footerHtml = `
     </div>
 
     <div class="pt-8 border-t border-subtle flex flex-col sm:flex-row items-center justify-between text-xs text-muted">
-      <p>© 2026 nagad-sdk Contributors. Built with TypeScript, Tailwind CSS, and Web Standards.</p>
+      <p>© 2026 nagad-sdk contributors · Developed by <a href="https://tashanto.com" target="_blank" rel="noopener" class="text-teal-700 dark:text-teal-400 hover:underline font-medium">TA Shanto</a></p>
       <p class="mt-2 sm:mt-0">Repository: <a href="https://github.com/iamtashanto/Nagad" target="_blank" rel="noopener noreferrer" class="text-teal-600 dark:text-teal-400 hover:underline">github.com/iamtashanto/Nagad</a></p>
     </div>
   </div>
@@ -214,10 +219,10 @@ function buildHomePage() {
   ${navbarHtml}
 
   <!-- Release notice -->
-  <aside class="bg-teal-950/40 border-b border-teal-500/20 text-teal-200 text-xs py-2 px-4 text-center" aria-label="Pre-release Notice">
+  <aside class="bg-teal-500/10 border-b border-teal-500/20 text-teal-900 dark:text-teal-200 text-xs py-2 px-4 text-center" aria-label="Release notice">
     <div class="max-w-7xl mx-auto flex items-center justify-center space-x-2">
-      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30">v0.1.0</span>
-      <span data-lang-en="First release. Not yet validated against the live Nagad gateway; see the feature status." data-lang-bn="nagad-server এবং nagad-client বর্তমানে সক্রিয় ডিজাইন ও প্রাথমিক ডেভেলপমেন্টে রয়েছে। প্যাকেজগুলো এখনও npm-এ প্রকাশিত হয়নি।">
+      <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-800 dark:text-teal-300 border border-teal-500/30">v0.1.0</span>
+      <span data-lang-en="First release. Not yet validated against the live Nagad gateway; see the feature status." data-lang-bn="প্রথম রিলিজ। লাইভ নগদ গেটওয়েতে এখনো যাচাই করা হয়নি; ফিচার স্ট্যাটাস দেখুন।">
         First release. Not yet validated against the live Nagad gateway; see the feature status.
       </span>
     </div>
@@ -258,7 +263,7 @@ function buildHomePage() {
               </div>
 
               <!-- Pre-release tag -->
-              <span class="text-[11px] font-medium text-muted">(Coming to npm soon)</span>
+              <span class="text-[11px] font-medium text-muted">on npm: <a href="https://www.npmjs.com/package/nagad-server" target="_blank" rel="noopener noreferrer" class="underline hover:text-primary">nagad-server</a> · <a href="https://www.npmjs.com/package/nagad-client" target="_blank" rel="noopener noreferrer" class="underline hover:text-primary">nagad-client</a></span>
             </div>
 
             <!-- Install snippets -->
@@ -318,7 +323,7 @@ function buildHomePage() {
             </div>
             <div class="mt-6 pt-4 border-t border-subtle text-xs text-muted flex items-center space-x-2">
               <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-              <span>Supported in nagad-server via automatic egress resolution or explicit config</span>
+              <span>Set <code>serverIp</code> in the config; use the <code>nagad-server/proxy</code> helper if your platform has no fixed IP</span>
             </div>
           </div>
 
@@ -331,13 +336,13 @@ function buildHomePage() {
               <h3 class="text-xl font-bold text-primary" data-lang-en="2. Node.js RSA PKCS#1 v1.5 Compatibility (CVE-2023-46809)" data-lang-bn="২. নোড জেএস RSA PKCS#1 v1.5 ক্রিপ্টো সামঞ্জস্য">
                 2. Node.js RSA PKCS#1 v1.5 Compatibility (CVE-2023-46809)
               </h3>
-              <p class="text-sm text-secondary mt-3 leading-relaxed" data-lang-en="Nagad uses RSA PKCS#1 v1.5 padding to encrypt sensitive response payloads. Starting in Node.js 20 and 21, OpenSSL mitigations against Marvin timing attacks introduced stricter PKCS#1 padding validations that can cause silent decryption mismatches if keys or ciphertext boundaries differ slightly. nagad-server handles key format normalization and safe PKCS#1 decryption under Node.js runtime crypto, isolating developers from OpenSSL subtleties." data-lang-bn="নগদ তাদের সেনসিটিভ রেসপন্স ডাটা এনক্রিপ্ট করার জন্য RSA PKCS#1 v1.5 প্যাডিং ব্যবহার করে। নোড জেএস ২০+ সংস্করণে মার্ভিন অ্যাটাক প্রতিহত করতে ওপেনএসএসএল প্যাডিং যাচাইকরণ আরও কঠোর করেছে। nagad-server চাবির ফরম্যাট ঠিক রেখে নিরাপদ ডিক্রিপশন পরিচালনা করে যাতে ডেভেলপারদের লো-লেভেল ক্রিপ্টো জটিলতায় পড়তে না হয়।">
+              <p class="text-sm text-secondary mt-3 leading-relaxed" data-lang-en="Nagad uses RSA PKCS#1 v1.5 padding to encrypt sensitive response payloads. Node.js builds on OpenSSL 3.0 (observed on Node 18.20 and 20.20) refuse RSA PKCS#1 v1.5 private-key decryption since the Marvin-attack fix. nagad-server detects this at startup and switches to its own BigInt decryption automatically; Node 22 and 24 use node:crypto." data-lang-bn="নগদ তাদের সেনসিটিভ রেসপন্স ডাটা এনক্রিপ্ট করার জন্য RSA PKCS#1 v1.5 প্যাডিং ব্যবহার করে। নোড জেএস ২০+ সংস্করণে মার্ভিন অ্যাটাক প্রতিহত করতে ওপেনএসএসএল প্যাডিং যাচাইকরণ আরও কঠোর করেছে। nagad-server চাবির ফরম্যাট ঠিক রেখে নিরাপদ ডিক্রিপশন পরিচালনা করে যাতে ডেভেলপারদের লো-লেভেল ক্রিপ্টো জটিলতায় পড়তে না হয়।">
                 Nagad uses RSA PKCS#1 v1.5 padding to encrypt sensitive response payloads. Starting in Node.js 20 and 21, OpenSSL mitigations against Marvin timing attacks introduced stricter PKCS#1 padding validations that can cause silent decryption mismatches if keys or ciphertext boundaries differ slightly. <code class="font-mono text-xs px-1.5 py-0.5 rounded bg-surface-elevated text-primary">nagad-server</code> handles key format normalization and safe PKCS#1 decryption under Node.js runtime crypto, isolating developers from OpenSSL subtleties.
               </p>
             </div>
             <div class="mt-6 pt-4 border-t border-subtle text-xs text-muted flex items-center space-x-2">
               <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-              <span>Fully normalized in our zero-dependency CryptoProvider</span>
+              <span>Tested on Node 20 (full suite) and Node 18 (smoke run); not yet against the live gateway</span>
             </div>
           </div>
         </div>
@@ -388,7 +393,7 @@ function buildHomePage() {
             <div class="flex items-center space-x-3 text-xs">
               <span class="px-2 py-1 rounded bg-surface-elevated font-mono font-bold text-muted">03</span>
               <div class="flex-1 p-3 rounded-xl bg-surface-elevated border border-subtle text-secondary">
-                <span class="font-semibold text-primary">Customer Authorization:</span> Browser redirects to Nagad-hosted portal. Customer enters wallet number, SMS OTP, and 4-digit PIN. <em>(Merchant never touches credentials)</em>.
+                <span class="font-semibold text-primary">Customer Authorization:</span> Browser redirects to Nagad-hosted portal. Customer enters wallet number, OTP and PIN. <em>(Merchant never touches credentials)</em>.
               </div>
             </div>
 

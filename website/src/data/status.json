@@ -48,7 +48,7 @@
       "name": "Legacy SHA1withRSA Signature Support",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "Documented in legacy PDF spec sections, but unused in vendor reference and live production.",
+      "notes": "Optional signature algorithm (signatureAlgorithm: \"SHA1\") for accounts that Nagad configured for SHA-1.",
       "evidence": "unit tests only; not validated with a real SHA-1 account"
     },
     "crypto_purejs_fallback": {
@@ -83,7 +83,7 @@
       "name": "Upstash / Generic KV Session Store",
       "status": "experimental",
       "package": "nagad-server",
-      "notes": "REST-based session persistence for edge/serverless runtimes without TCP connections.",
+      "notes": "REST-based session persistence (Upstash, Cloudflare KV, Vercel KV) for serverless platforms without TCP connections.",
       "evidence": "unit tests with a fake KV"
     },
     "express_adapter": {
@@ -97,7 +97,7 @@
       "name": "Next.js App Router Adapter",
       "status": "beta",
       "package": "nagad-server",
-      "notes": "Route handlers and Server Action helpers.",
+      "notes": "createNextRouteHandler for App Router route handlers.",
       "evidence": "tests: route handler answers create; web-standard Request/Response"
     },
     "hono_adapter": {
@@ -132,7 +132,7 @@
       "name": "Angular Service (NagadService)",
       "status": "beta",
       "package": "nagad-client",
-      "notes": "Plain TypeScript service compatible across Angular 16-19 without ng-packagr lock-in.",
+      "notes": "Plain TypeScript service (extend it and decorate with @Injectable()).",
       "evidence": "behaviour tests"
     },
     "mock_simulator": {
@@ -146,14 +146,14 @@
       "name": "Programmatic Refund API",
       "status": "planned",
       "package": "nagad-server",
-      "notes": "Not supported: use the Nagad merchant portal. raw() escape hatch available.",
+      "notes": "Not supported: use the Nagad merchant portal.",
       "evidence": "Not implemented: no verifiable public specification. The raw() escape hatch is not provided for it."
     },
     "webhook_ipn": {
       "name": "Server-to-Server Webhook / IPN",
       "status": "planned",
       "package": "nagad-server",
-      "notes": "Not supported (unverified in vendor reference and live production).",
+      "notes": "Not supported: no public specification.",
       "evidence": "Not implemented: no public specification"
     },
     "http_handler": {
