@@ -15,9 +15,10 @@ Generated from the same data as the website and the READMEs. **Stable** would me
 
 | Runtime / tool | Status |
 | --- | --- |
-| Node.js 22, 24 (CI, Ubuntu) | Tested |
+| Node.js 20, 22, 24 (CI, Ubuntu) | Tested |
 | Node.js 22 on Alpine (musl) | Tested |
-| Node.js 18, 20 | Fails the default crypto provider; pure-JS fallback untested |
+| Node.js 18 | Smoke-tested (full create and verify) by script; vitest itself needs Node 20+ |
+| Node.js 18, 20 crypto | Automatic pure-JS decryption fallback, tested |
 | macOS, Windows | Not in CI |
 | Cloudflare Workers, Vercel Edge | Not supported |
 | Live Nagad sandbox or production | Not run by the maintainers |

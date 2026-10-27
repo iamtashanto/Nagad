@@ -34,16 +34,16 @@ This repository is an **unofficial**, community-driven open-source project. It i
 | Order Placement & Complete (/check-out/complete) | Experimental | automated tests against the local simulator; NOT TESTED against the live gateway |
 | Payment Verification (/verify/payment) | Experimental | automated tests against the local simulator incl. tampered amount, order id and merchant id; NOT TESTED against the live gateway |
 | Payment Status Check | Experimental | automated tests against the local simulator |
-| Native Node.js Crypto Provider (OpenSSL 3) | Beta | golden-vector tests; passes on Node 22 and 24, fails on Node 18/20 (OpenSSL 3.0 rejects RSA PKCS#1 v1.5 decryption) |
+| Native Node.js Crypto Provider (OpenSSL 3) | Beta | golden-vector tests; passes on Node 22 and 24; on Node 18.20 and 20.20 (OpenSSL 3.0) node:crypto rejects RSA PKCS#1 v1.5 decryption, so those tests are skipped there |
 | Legacy SHA1withRSA Signature Support | Experimental | unit tests only; not validated with a real SHA-1 account |
-| Pure-JS PKCS#1 v1.5 Fallback Provider | Experimental | NOT TESTED on Node 18/20 |
+| Pure-JS PKCS#1 v1.5 decryption (automatic fallback) | Beta | tests on Node 20 (full suite) and a full create+verify smoke run on Node 18.20.8; compared with node:crypto ciphertexts; NOT TESTED against the live gateway |
 | Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge) | Planned | Not supported: WebCrypto has no RSAES-PKCS1-v1_5 |
 | Memory Session Store (Dev-Only) | Beta | automated tests against the local simulator (race and replay tests) |
 | Redis Session Store (Distributed Lua CAS) | Beta | automated tests against the local simulator with a real Redis service in CI |
 | Upstash / Generic KV Session Store | Experimental | unit tests with a fake KV |
-| Express Adapter | Beta | automated tests against the local simulator |
-| Next.js App Router Adapter | Experimental | automated tests against the local simulator (smoke) |
-| Hono Adapter | Experimental | automated tests against the local simulator (smoke) |
+| Express Adapter | Beta | tests inside real Express (with and without a body parser) through create and verify |
+| Next.js App Router Adapter | Beta | tests: route handler answers create; web-standard Request/Response |
+| Hono Adapter | Beta | tests inside real Hono (node-server) through create and verify |
 | React Hook (useNagadCheckout) | Beta | behaviour tests: verify-before-success contract |
 | React Native WebView Integration | Experimental | callback interception tested without a device; NOT TESTED on a physical device |
 | Vue 3 Composable (useNagad) | Beta | behaviour tests |
@@ -54,6 +54,9 @@ This repository is an **unofficial**, community-driven open-source project. It i
 | HTTP handler (create, callback) | Beta | automated tests against the local simulator: tampering, allowlist, fail-closed, error mapping |
 | Forward-proxy egress (fixed IP) | Experimental | unit tests; NOT TESTED against a real proxy |
 | Svelte store | Beta | behaviour tests |
+| Fastify plugin | Beta | tests inside real Fastify through create and verify |
+| Koa middleware | Beta | tests inside real Koa through create and verify |
+| Remix, SvelteKit, Astro, Nitro and Nest adapters | Experimental | Remix, SvelteKit and Astro: Request/Response tests; Nitro and Nest: NOT TESTED in a real framework |
 <!-- status:end -->
 
 ## Quickstart

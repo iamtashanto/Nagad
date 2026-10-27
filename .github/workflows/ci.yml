@@ -63,6 +63,9 @@ jobs:
       - name: Build packages
         run: pnpm run build
 
+      - name: Smoke test create and verify on Node 18
+        run: npx -y node@18 scripts/smoke-checkout.mjs
+
       - name: Audit package exports with publint
         run: |
           npx -y publint packages/nagad-server
@@ -99,7 +102,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node-version: [22, 24]
+        node-version: [20, 22, 24]
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

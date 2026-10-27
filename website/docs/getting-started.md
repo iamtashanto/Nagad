@@ -9,7 +9,7 @@ order: 2
 
 ## Requirements
 
-- **Node.js 22 or newer** (see [Runtime compatibility](../runtime-compatibility/)).
+- **Node.js 18 or newer.** Node 22+ uses `node:crypto`; Node 18/20 use the automatic fallback (see [Runtime compatibility](../runtime-compatibility/)).
 - A Nagad merchant account with: your **merchant ID**, **Nagad's public key**, a **merchant key pair** whose public half you uploaded in the merchant portal, and the **API base URL** for your environment. Nagad provides these during onboarding. See [Key setup](../key-setup/).
 
 ## Install

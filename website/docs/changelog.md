@@ -13,7 +13,8 @@ Release notes are published on [GitHub Releases](https://github.com/iamtashanto/
 
 - **Security:** the HTTP handler no longer forwards the browser's request body. `resolveOrder` is required; callback origins are allowlisted; unknown sessions fail closed; responses are minimal.
 - **Correctness:** `nagad-client` treats a callback as `verifying` and succeeds only after `confirmSuccess()`. A `pending` state was added.
-- **Runtime:** `nagad-server` requires Node.js 22 or newer.
+- **Runtime:** Node 18, 20, 22 and 24 work. A real pure-JS RSA decryption replaces the previous empty `PureJsCryptoProvider`, and the client switches to it automatically when `node:crypto` rejects RSA PKCS#1 v1.5 (Node 18/20).
+- **Adapters:** tested inside real Express, Fastify, Hono and Koa.
 - **Honesty:** removed unproven "production-grade" and vendor-conformance claims; refund and webhook are documented as not implemented.
 - **Docs:** this documentation site, generated status table, and error reference.
 

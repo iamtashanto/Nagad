@@ -14,7 +14,7 @@ All errors extend `NagadError` and carry a stable `code`.
 | Class | Cause | What to do |
 | --- | --- | --- |
 | `NagadApiError` (and subclasses below) | Nagad answered with an error. `rawCode`, `httpStatus` and `rawResponse` are available. | Look up the code below. |
-| `NagadCryptoCapabilityError` | The runtime cannot do RSA PKCS#1 v1.5 decryption. | Use Node 22+, see [Runtime compatibility](../runtime-compatibility/). |
+| `NagadCryptoCapabilityError` | A custom crypto provider cannot do RSA PKCS#1 v1.5 decryption. | You configured your own provider that cannot decrypt. Use the default provider (it falls back automatically), see [Runtime compatibility](../runtime-compatibility/). |
 | `NagadCryptoError` | Signing, encryption or key parsing failed. | Check the keys. |
 | `NagadSignatureVerificationError` | Nagad's response signature did not verify. | Check `pgPublicKey` and `signatureAlgorithm`. Treat the response as untrusted. |
 | `NagadVerificationMismatchError` | Amount, order id or merchant differ from what you expected. | Do not fulfil. Investigate. |

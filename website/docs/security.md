@@ -31,7 +31,7 @@ order: 9
 
 ## Production checklist
 
-- [ ] Node.js 22 or newer, and `await nagad.init()` runs at startup.
+- [ ] Node.js 18 or newer, and `await nagad.init()` runs at startup (a warning is logged if the pure-JS fallback is in use).
 - [ ] Production keys, merchant ID and `baseUrl` come from your secret manager.
 - [ ] Your public key and callback URL are registered with Nagad; your egress IP is whitelisted.
 - [ ] `sessionStore` is Redis (or Upstash/KV), not memory, if you run more than one process.

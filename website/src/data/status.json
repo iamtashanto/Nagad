@@ -41,8 +41,8 @@
       "name": "Native Node.js Crypto Provider (OpenSSL 3)",
       "status": "beta",
       "package": "nagad-server",
-      "notes": "Native Node.js crypto provider. Requires Node >= 22.",
-      "evidence": "golden-vector tests; passes on Node 22 and 24, fails on Node 18/20 (OpenSSL 3.0 rejects RSA PKCS#1 v1.5 decryption)"
+      "notes": "Native Node.js crypto provider. Works on Node 22+; on Node 18/20 the client switches to the pure-JS decryption automatically.",
+      "evidence": "golden-vector tests; passes on Node 22 and 24; on Node 18.20 and 20.20 (OpenSSL 3.0) node:crypto rejects RSA PKCS#1 v1.5 decryption, so those tests are skipped there"
     },
     "crypto_sha1_fallback": {
       "name": "Legacy SHA1withRSA Signature Support",
@@ -52,17 +52,17 @@
       "evidence": "unit tests only; not validated with a real SHA-1 account"
     },
     "crypto_purejs_fallback": {
-      "name": "Pure-JS PKCS#1 v1.5 Fallback Provider",
-      "status": "experimental",
+      "name": "Pure-JS PKCS#1 v1.5 decryption (automatic fallback)",
+      "status": "beta",
       "package": "nagad-server",
-      "notes": "Optional peer adapter for runtimes lacking OpenSSL implicit rejection.",
-      "evidence": "NOT TESTED on Node 18/20"
+      "notes": "BigInt RSA decryption used automatically when node:crypto cannot decrypt (Node 18/20), or explicitly with PureJsCryptoProvider. Not constant-time; for decrypting Nagad responses only.",
+      "evidence": "tests on Node 20 (full suite) and a full create+verify smoke run on Node 18.20.8; compared with node:crypto ciphertexts; NOT TESTED against the live gateway"
     },
     "crypto_edge_runtimes": {
       "name": "Edge / Serverless Runtimes (Cloudflare Workers, Vercel Edge)",
       "status": "planned",
       "package": "nagad-server",
-      "notes": "WebCrypto lacks RSAES-PKCS1-v1_5 support; requires PureJs provider or backend proxy.",
+      "notes": "Not supported: WebCrypto has no RSAES-PKCS1-v1_5, and the SDK relies on node:crypto for signing and encryption.",
       "evidence": "Not supported: WebCrypto has no RSAES-PKCS1-v1_5"
     },
     "session_store_memory": {
@@ -91,21 +91,21 @@
       "status": "beta",
       "package": "nagad-server",
       "notes": "Thin wrapper around standard Web Request/Response handler.",
-      "evidence": "automated tests against the local simulator"
+      "evidence": "tests inside real Express (with and without a body parser) through create and verify"
     },
     "nextjs_adapter": {
       "name": "Next.js App Router Adapter",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
       "notes": "Route handlers and Server Action helpers.",
-      "evidence": "automated tests against the local simulator (smoke)"
+      "evidence": "tests: route handler answers create; web-standard Request/Response"
     },
     "hono_adapter": {
       "name": "Hono Adapter",
-      "status": "experimental",
+      "status": "beta",
       "package": "nagad-server",
       "notes": "Native Web Request/Response adapter for Hono.",
-      "evidence": "automated tests against the local simulator (smoke)"
+      "evidence": "tests inside real Hono (node-server) through create and verify"
     },
     "react_hook": {
       "name": "React Hook (useNagadCheckout)",
@@ -176,6 +176,27 @@
       "package": "nagad-client",
       "notes": "createNagadStore.",
       "evidence": "behaviour tests"
+    },
+    "fastify_adapter": {
+      "name": "Fastify plugin",
+      "status": "beta",
+      "package": "nagad-server",
+      "notes": "createFastifyPlugin.",
+      "evidence": "tests inside real Fastify through create and verify"
+    },
+    "koa_adapter": {
+      "name": "Koa middleware",
+      "status": "beta",
+      "package": "nagad-server",
+      "notes": "createKoaMiddleware.",
+      "evidence": "tests inside real Koa through create and verify"
+    },
+    "other_adapters": {
+      "name": "Remix, SvelteKit, Astro, Nitro and Nest adapters",
+      "status": "experimental",
+      "package": "nagad-server",
+      "notes": "Thin wrappers over the web-standard handler.",
+      "evidence": "Remix, SvelteKit and Astro: Request/Response tests; Nitro and Nest: NOT TESTED in a real framework"
     }
   },
   "lastUpdated": "2026-10-27"

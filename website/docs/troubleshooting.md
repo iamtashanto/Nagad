@@ -9,7 +9,7 @@ order: 12
 
 ## `NagadCryptoCapabilityError` at startup
 
-Your Node.js build rejects RSA PKCS#1 v1.5 decryption. Use Node 22 or 24. See [Runtime compatibility](../runtime-compatibility/).
+This only happens when you pass your own `cryptoProvider`: it cannot do RSA PKCS#1 v1.5 decryption. Remove it (the default falls back automatically) or use `PureJsCryptoProvider`. See [Runtime compatibility](../runtime-compatibility/).
 
 ## `NagadSignatureVerificationError`
 

@@ -7,7 +7,7 @@ Version history: `0.1.0-alpha.1` (deprecated) → `0.1.0` (first release, 2026-1
 
 | Gate                                       | State                          | Evidence                                        |
 | ------------------------------------------ | ------------------------------ | ----------------------------------------------- |
-| Typecheck and tests                        | Pass locally                   | 75 tests, Node 22 and 24                        |
+| Typecheck and tests                        | Pass locally                   | 94 tests, Node 20, 22 and 24                        |
 | Handler security regression tests          | Pass                           | `tests/handler-security.test.ts`                |
 | Client verify-before-success contract      | Pass                           | `nagad-client/tests/callback-untrusted.test.ts` |
 | Error table equals `mapNagadApiError`      | Pass                           | `tests/error-table.test.ts`                     |
@@ -24,7 +24,7 @@ Version history: `0.1.0-alpha.1` (deprecated) → `0.1.0` (first release, 2026-1
 | Both signature algorithms (SHA-256 and SHA-1) checked against the live gateway      | **Owner to run**                                |
 | Production smoke test with a fixed egress IP (and proxy recipe if used)             | **Owner to run**                                |
 | Real-device Android and iOS smoke test of the WebView handler                       | **Owner to run**                                |
-| Pure-JS crypto fallback verified on Node 18/20 (or Node 22+ only declared)          | Open                                            |
+| Pure-JS crypto fallback verified on Node 18/20                                       | Done (tests on 20, smoke run on 18)             |
 | Independent review of the crypto, verification and session code                     | Open                                            |
 | Shadow-mode or pilot results from a real merchant                                   | Open                                            |
 | Zero open BLOCKER or HIGH findings                                                  | Open (see `docs/internal/TRIAGE.md`)            |

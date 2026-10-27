@@ -7,14 +7,15 @@ First non-alpha release of `nagad-server` and `nagad-client`. It is **not yet va
 ### Security and correctness
 - The HTTP handler no longer forwards the browser's request body: `resolveOrder` is required, callback origins are allowlisted, unknown sessions fail closed, responses are minimal.
 - `nagad-client`: a callback moves to `verifying`; success only after `confirmSuccess()`. New `pending` state.
-- `nagad-server` requires Node.js 22 or newer (RSA PKCS#1 v1.5 private decryption is rejected on Node 18/20 builds).
+- Node 18, 20, 22 and 24: `PureJsCryptoProvider` now implements RSA PKCS#1 v1.5 decryption with BigInt (it used to throw without an injected engine), and the client uses it automatically when `node:crypto` rejects that padding (Node 18/20).
+- Adapters tested inside real Express, Fastify, Hono and Koa.
 
 ### Documentation
 - New documentation site, package READMEs, generated feature-status table and error reference.
 
 ### Known gaps
 - No refund or webhook support (no public specification).
-- Nothing has been run against the live Nagad gateway; the pure-JS crypto fallback is untested on Node 18/20.
+- Nothing has been run against the live Nagad gateway.
 
 ## 0.1.0-alpha.1
 

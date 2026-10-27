@@ -21,7 +21,7 @@ No. There is no public specification to implement them against. If you need them
 
 ## Which Node.js versions?
 
-22 and 24 (CI). Node 18 and 20 fail the default crypto provider's capability check.
+18, 20, 22 and 24. Node 22 and 24 use `node:crypto`; on Node 18 and 20 the SDK switches to its own decryption automatically (tested).
 
 ## Why can't it run on Cloudflare Workers or Vercel Edge?
 

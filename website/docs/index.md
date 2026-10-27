@@ -30,5 +30,5 @@ TypeScript SDKs for accepting [Nagad](https://nagad.com.bd) payments through the
 
 1. [Getting started](../getting-started/)
 2. [Key setup](../key-setup/): generating keys and registering them with Nagad.
-3. [Runtime compatibility](../runtime-compatibility/): **Node.js 22 or newer** for the default crypto provider.
+3. [Runtime compatibility](../runtime-compatibility/): Node 18, 20, 22 and 24, and how RSA PKCS#1 v1.5 is handled on each.
 4. [Security and production checklist](../security/)
