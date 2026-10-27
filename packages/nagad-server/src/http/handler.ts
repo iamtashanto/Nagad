@@ -216,9 +216,15 @@ export class NagadHttpHandler {
           }
         }
 
-        return new Response(JSON.stringify(verifyResult), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+        // Data minimization: never return rawResponse or wallet numbers to the browser.
+        return json(200, {
+          success: verifyResult.success,
+          orderId: verifyResult.orderId,
+          paymentRefId: verifyResult.paymentRefId,
+          amount: verifyResult.amount,
+          status: verifyResult.status,
+          statusCode: verifyResult.statusCode,
+          issuerPaymentDateTime: verifyResult.issuerPaymentDateTime,
         });
       }
 

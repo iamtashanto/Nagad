@@ -116,4 +116,33 @@ describe("HTTP handler security (regression)", () => {
     expect(text).not.toContain("hunter2");
     expect(res.status).toBeGreaterThanOrEqual(400);
   });
+
+  it("returns a minimal public callback result without raw gateway data", async () => {
+    const handle = createWebHandler(client, {
+      resolveOrder: async () => ({ amount: "25.00" }),
+    });
+    const created = (await (await handle(post("/create", {}))).json()) as {
+      paymentReferenceId: string;
+    };
+    const res = await handle(
+      new Request(
+        `https://shop.example/callback?payment_ref_id=${created.paymentReferenceId}`,
+      ),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.rawResponse).toBeUndefined();
+    expect(body.merchantMobileNo).toBeUndefined();
+    expect(Object.keys(body).sort()).toEqual(
+      [
+        "amount",
+        "issuerPaymentDateTime",
+        "orderId",
+        "paymentRefId",
+        "status",
+        "statusCode",
+        "success",
+      ].filter((k) => k in body || k === "success"),
+    );
+  });
 });
