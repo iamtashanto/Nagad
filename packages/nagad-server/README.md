@@ -30,6 +30,13 @@ This package is an **unofficial**, community-driven open-source library. It is *
 
 ---
 
+## Runtime requirements
+
+- **Node.js >= 22 is required for the default crypto provider.** Nagad uses RSA PKCS#1 v1.5 encryption; Node builds on OpenSSL 3.0 (observed: Node 18.20 and 20.20) refuse PKCS#1 v1.5 private decryption, and `checkCapability()` throws `NagadCryptoCapabilityError`. Tested on Node 22 and 24.
+- Node 18/20: pass `cryptoProvider: new PureJsCryptoProvider()` (**NOT TESTED**). Cloudflare Workers / Vercel Edge: **NOT TESTED**.
+
+---
+
 ## Installation
 
 ```bash
