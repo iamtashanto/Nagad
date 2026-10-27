@@ -198,7 +198,7 @@ function buildHomePage() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>nagad-sdk — Unofficial Open-Source Nagad Payment Gateway SDK</title>
-  <meta name="description" content="Production-grade, zero-dependency TypeScript SDK for Nagad (Bangladesh) payments: nagad-server and nagad-client. Dead-simple setup, deep security control.">
+  <meta name="description" content="Zero-runtime-dependency TypeScript SDK for Nagad (Bangladesh) payments: nagad-server and nagad-client. Dead-simple setup, deep security control.">
   <link rel="canonical" href="${SITE_URL}/">
   ${robotsMeta}
 
@@ -562,17 +562,9 @@ app.get(<span class="text-emerald-700 dark:text-teal-400 font-bold">'/api/paymen
               ${Object.entries(statusData.features)
                 .map(([key, item]) => {
                   let statusBadge = "";
-                  if (
-                    item.status === "confirmed-vendor-reference" ||
-                    item.status === "confirmed-production" ||
-                    item.status === "stable"
-                  ) {
-                    const isProd =
-                      item.productionStatus === "confirmed-production" ||
-                      item.status === "confirmed-production";
-                    statusBadge = isProd
-                      ? '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">Confirmed Ref + Prod</span>'
-                      : '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">Confirmed Reference</span>';
+                  if (item.status === "stable") {
+                    statusBadge =
+                      '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">Stable</span>';
                   } else if (item.status === "verified-sandbox-e2e") {
                     statusBadge =
                       '<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">Verified Sandbox E2E</span>';

@@ -2,44 +2,39 @@
   "version": "0.1.0-alpha.0",
   "releaseStage": "pre-release",
   "evidenceLevels": {
-    "confirmed-vendor-reference": "Matches Nagad official merchant vendor reference code (nagadready)",
-    "confirmed-production": "Exercised directly by live merchant integration in active production",
-    "verified-sandbox-e2e": "Validated against Nagad's live sandbox environment in end-to-end automated test",
-    "unverified": "Documented in older PDF specifications or community implementations, but not confirmed by vendor reference or live production"
+    "verified-sandbox-e2e": "Validated against Nagad's sandbox in an owner-run end-to-end test (date recorded in docs).",
+    "experimental": "Implemented and covered by automated tests against the local simulator. Not yet validated against the live gateway.",
+    "planned": "Not implemented.",
+    "unverified": "Described in public specifications or community code but not implemented or not validated."
   },
   "features": {
     "checkout_session_initialize": {
       "name": "Session Initialization (/check-out/initialize)",
-      "status": "confirmed-vendor-reference",
-      "productionStatus": "confirmed-production",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Exercises RSA-PKCS1 encryption and RSA-SHA256 digital signature handshake."
     },
     "checkout_complete": {
       "name": "Order Placement & Complete (/check-out/complete)",
-      "status": "confirmed-vendor-reference",
-      "productionStatus": "confirmed-production",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Completes handshake, exchanges challenge, and retrieves hosted checkout URL."
     },
     "payment_verification": {
       "name": "Payment Verification (/verify/payment)",
-      "status": "confirmed-vendor-reference",
-      "productionStatus": "confirmed-production",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Mandatory server-to-server callback verification comparing order ID, amount, and signature."
     },
     "payment_status_check": {
       "name": "Payment Status Check",
-      "status": "confirmed-vendor-reference",
-      "productionStatus": "confirmed-production",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Server-side inquiry by paymentReferenceId with automated PII masking."
     },
     "crypto_provider_node": {
       "name": "Native Node.js Crypto Provider (OpenSSL 3)",
-      "status": "confirmed-vendor-reference",
-      "productionStatus": "confirmed-production",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Native node:crypto with RSA-SHA256 and startup PKCS#1 v1.5 capability canary."
     },
@@ -63,67 +58,67 @@
     },
     "session_store_memory": {
       "name": "Memory Session Store (Dev-Only)",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Atomic create-if-absent and 30s CAS lease claims for local development."
     },
     "session_store_redis": {
       "name": "Redis Session Store (Distributed Lua CAS)",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Atomic Lua transitions, configurable TTLs, and 7-day replay prevention tombstones."
     },
     "session_store_kv_rest": {
       "name": "Upstash / Generic KV Session Store",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "REST-based session persistence for edge/serverless runtimes without TCP connections."
     },
     "express_adapter": {
       "name": "Express Adapter",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Thin wrapper around standard Web Request/Response handler."
     },
     "nextjs_adapter": {
       "name": "Next.js App Router Adapter",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Route handlers and Server Action helpers."
     },
     "hono_adapter": {
       "name": "Hono Adapter",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-server",
       "notes": "Native Web Request/Response adapter for Hono."
     },
     "react_hook": {
       "name": "React Hook (useNagadCheckout)",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-client",
       "notes": "Headless state machine hook."
     },
     "react_native_webview": {
       "name": "React Native WebView Integration",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-client",
       "notes": "In-app WebView checkout with hardware back-button and deep-link handling."
     },
     "vue_composable": {
       "name": "Vue 3 Composable (useNagad)",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-client",
       "notes": "Reactive state machine composable."
     },
     "angular_service": {
       "name": "Angular Service (NagadService)",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-client",
       "notes": "Plain TypeScript service compatible across Angular 16-19 without ng-packagr lock-in."
     },
     "mock_simulator": {
       "name": "Local Test Simulator & Throwaway Key Generator",
-      "status": "confirmed-vendor-reference",
+      "status": "experimental",
       "package": "nagad-simulator",
       "notes": "Zero-dependency HTTP simulator for deterministic CI and offline development."
     },

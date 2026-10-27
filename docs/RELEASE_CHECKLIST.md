@@ -2,30 +2,30 @@
 
 ## 1. Go / No-Go Decision Gate
 
-| Requirement                        | Target Criteria                                                        | Status  | Evidence / Verification                                     |
-| :--------------------------------- | :--------------------------------------------------------------------- | :-----: | :---------------------------------------------------------- |
-| **No Secrets / IPs in Git**        | 0 leaks in `gitleaks git` across full history                          | ✅ PASS | Scanned 9 commits, 0 leaks found                            |
-| **No Secrets in Working Tree**     | 0 leaks in `gitleaks dir .`                                            | ✅ PASS | Scanned full workspace, 0 leaks found                       |
-| **Tarball Whitelist Cleanliness**  | No internal audit, no test keys, no PDFs                               | ✅ PASS | Verified via `npm pack --dry-run` on both packages          |
-| **Types Resolution (All Modes)**   | @arethetypeswrong green on node10, node16, nodenext, bundler           | ✅ PASS | 100% green across all subpaths in both packages             |
-| **Package Exports Standard**       | publint passes with zero lint warnings                                 | ✅ PASS | "All good!" on `nagad-server` & `nagad-client`              |
-| **Core Test Suite Coverage**       | >= 90% statement/branch coverage                                       | ✅ PASS | 61 tests passing across 14 test suites in < 1s              |
-| **Differential Conformance**       | Byte-identical RSA signatures & cross-decryption with vendor reference | ✅ PASS | Verified via `scripts/run-conformance.ts` & golden fixtures |
-| **Multi-Node CI Matrix**           | Node 18, 20, 22, 24 on Ubuntu, macOS, and Alpine Linux                 | ✅ PASS | Configured in `.github/workflows/ci.yml`                    |
-| **Zero Float Arithmetic**          | String-based normalization and poisha integer math                     | ✅ PASS | Verified via `amount.test.ts`                               |
-| **Order ID Validation**            | Atomic create-if-absent pre-check and 5-20 alphanumeric regex          | ✅ PASS | Verified via `order-id.test.ts` & `tamper.test.ts`          |
-| **Default-On Response Signatures** | Response verification mandatory unless explicitly opted out            | ✅ PASS | Enforced in `client.ts` and `tamper.test.ts`                |
-| **PII & Secret Sanitization**      | Automatic MSISDN masking and recursive object secret redaction         | ✅ PASS | Verified via `utils.test.ts`                                |
+| Requirement                        | Target Criteria                                                |   Status   | Evidence / Verification                                                |
+| :--------------------------------- | :------------------------------------------------------------- | :--------: | :--------------------------------------------------------------------- |
+| **No Secrets / IPs in Git**        | 0 leaks in `gitleaks git` across full history                  |  ✅ PASS   | Scanned 9 commits, 0 leaks found                                       |
+| **No Secrets in Working Tree**     | 0 leaks in `gitleaks dir .`                                    |  ✅ PASS   | Scanned full workspace, 0 leaks found                                  |
+| **Tarball Whitelist Cleanliness**  | No internal audit, no test keys, no PDFs                       |  ✅ PASS   | Verified via `npm pack --dry-run` on both packages                     |
+| **Types Resolution (All Modes)**   | @arethetypeswrong green on node10, node16, nodenext, bundler   |  ✅ PASS   | 100% green across all subpaths in both packages                        |
+| **Package Exports Standard**       | publint passes with zero lint warnings                         |  ✅ PASS   | "All good!" on `nagad-server` & `nagad-client`                         |
+| **Core Test Suite Coverage**       | >= 90% statement/branch coverage                               |  ✅ PASS   | 61 tests passing across 14 test suites in < 1s                         |
+| **Crypto Golden Vectors**          | RSA sign/encrypt round-trips against the local simulator       |  ✅ PASS   | `golden-conformance.test.ts` (simulator only; live gateway NOT TESTED) |
+| **Multi-Node CI Matrix**           | Node 18, 20, 22, 24 on Ubuntu, macOS, and Alpine Linux         | ⬜ NOT YET | Configured but no green run on main yet                                |
+| **Zero Float Arithmetic**          | String-based normalization and poisha integer math             |  ✅ PASS   | Verified via `amount.test.ts`                                          |
+| **Order ID Validation**            | Atomic create-if-absent pre-check and 5-20 alphanumeric regex  |  ✅ PASS   | Verified via `order-id.test.ts` & `tamper.test.ts`                     |
+| **Default-On Response Signatures** | Response verification mandatory unless explicitly opted out    |  ✅ PASS   | Enforced in `client.ts` and `tamper.test.ts`                           |
+| **PII & Secret Sanitization**      | Automatic MSISDN masking and recursive object secret redaction |  ✅ PASS   | Verified via `utils.test.ts`                                           |
 
 ---
 
-## 2. Production Dogfood Plan (LifeLineit Integration)
+## 2. Production Dogfood Plan (Owner Pilot Integration)
 
-To safely migrate existing production workloads (`LifeLineit/backend`) to `nagad-server`, follow this three-phase rollout:
+To safely migrate existing production workloads (a private backend) to `nagad-server`, follow this three-phase rollout:
 
 ### Phase 1: Shadow Mode (Zero Order Impact)
 
-1. Install `nagad-server@0.1.0-alpha.1` in `LifeLineit/backend`.
+1. Install `nagad-server@0.1.0-alpha.1` in the pilot backend.
 2. Configure `createNagad()` with existing credentials and an in-memory session store.
 3. In parallel to existing checkout calls, invoke `nagadClient.checkout.create()` inside a try/catch block.
 4. Compare generated payloads and log any discrepancies:
