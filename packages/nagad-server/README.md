@@ -1,6 +1,6 @@
 # nagad-server
 
-> Production-grade, zero-dependency Nagad Payment Gateway SDK for Node.js, TypeScript, and modern JavaScript runtimes.
+> Alpha, zero-runtime-dependency Nagad Payment Gateway SDK for Node.js, TypeScript, and modern JavaScript runtimes.
 
 [![CI](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml/badge.svg)](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -76,6 +76,10 @@ import { nagad } from "@/lib/nagad";
 
 export const { GET, POST } = createNextRouteHandler(nagad, {
   basePath: "/api/nagad",
+  // Required: decide the amount on the server. Client-sent amounts are rejected.
+  resolveOrder: async (req) => ({ amount: await lookupCartTotal(req) }),
+  // Client-sent callbackUrl is ignored unless its origin is listed here.
+  allowedCallbackOrigins: ["https://example.com"],
   onSuccess: async (result) => {
     console.log("Payment verified successfully:", result.orderId);
   },

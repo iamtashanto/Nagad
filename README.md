@@ -1,6 +1,6 @@
 # Nagad SDK Monorepo
 
-> Production-grade, zero-dependency, open-source Nagad Payment Gateway SDK for Node.js, Web, and Mobile.
+> Alpha, zero-runtime-dependency, open-source Nagad Payment Gateway SDK for Node.js, Web, and Mobile.
 
 [![CI](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml/badge.svg)](https://github.com/iamtashanto/Nagad/actions/workflows/ci.yml)
 [![Website](https://img.shields.io/badge/docs-website-teal.svg)](https://iamtashanto.github.io/Nagad/)
@@ -74,7 +74,7 @@ function Checkout() {
 - **Full History Gitleaks Clean**: Scanned across all commits; zero secrets, real keys, or confidential IPs exist in git.
 - **Marvin / Bleichenbacher Mitigation**: `NodeCryptoProvider.checkCapability()` validates host runtime OpenSSL implicit rejection at boot.
 - **Types Resolution Modes**: 100% green on `@arethetypeswrong/cli` for `node10`, `node16`, `nodenext`, and `bundler`.
-- **Deterministic Cryptographic Conformance**: Byte-identical RSA signatures cross-verified against official vendor reference implementations.
+- **Deterministic Cryptographic Tests**: RSA signing and encryption are covered by golden-vector tests against the bundled local simulator. Not yet validated against the live gateway.
 
 ---
 
