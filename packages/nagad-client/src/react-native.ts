@@ -34,7 +34,8 @@ export function createWebViewNavigationHandler(
       try {
         const host = new URL(currentUrl).hostname.toLowerCase();
         const isAllowed = options.allowedHosts.some(
-          (h) => host === h.toLowerCase() || host.endsWith("." + h.toLowerCase()),
+          (h) =>
+            host === h.toLowerCase() || host.endsWith("." + h.toLowerCase()),
         );
         if (!isAllowed) {
           return false; // Block untrusted external navigation
