@@ -8,7 +8,7 @@ Headless checkout bindings for [Nagad](https://nagad.com.bd) payments: React, Re
 
 > **Unofficial.** Not affiliated with, endorsed by, or sponsored by Nagad or Third Wave Technologies Ltd.
 
-**Documentation:** <https://iamtashanto.github.io/Nagad/docs/client-guide/> · **Issues:** <https://github.com/iamtashanto/Nagad/issues>
+**Documentation:** <https://nagad-sdk.tashanto.com/docs/client-guide/> · **Issues:** <https://github.com/iamtashanto/Nagad/issues>
 
 ## Why
 
@@ -41,7 +41,7 @@ checkout.initiate(callBackUrl); // from your server's /create
 // when the customer returns: checkout.handleCallback(location.search);
 ```
 
-React, React Native (with `handleHardwareBackPress` for Android), Vue, Svelte and Angular examples are in the [client guide](https://iamtashanto.github.io/Nagad/docs/client-guide/).
+React, React Native (with `handleHardwareBackPress` for Android), Vue, Svelte and Angular examples are in the [client guide](https://nagad-sdk.tashanto.com/docs/client-guide/).
 
 ## What is supported
 

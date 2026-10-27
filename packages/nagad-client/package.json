@@ -131,7 +131,7 @@
     "url": "git+https://github.com/iamtashanto/Nagad.git",
     "directory": "packages/nagad-client"
   },
-  "homepage": "https://iamtashanto.github.io/Nagad/docs/",
+  "homepage": "https://nagad-sdk.tashanto.com/docs/",
   "bugs": {
     "url": "https://github.com/iamtashanto/Nagad/issues"
   },

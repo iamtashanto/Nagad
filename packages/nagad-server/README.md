@@ -9,7 +9,7 @@ Server SDK for accepting [Nagad](https://nagad.com.bd) payments from Node.js: si
 > **Unofficial.** Not affiliated with, endorsed by, or sponsored by Nagad or Third Wave Technologies Ltd.
 > **Pre-release:** nothing has been run against the live Nagad gateway by the maintainers yet. See the status table below.
 
-**Documentation:** <https://iamtashanto.github.io/Nagad/docs/> · **Issues:** <https://github.com/iamtashanto/Nagad/issues> · **Releases:** <https://github.com/iamtashanto/Nagad/releases>
+**Documentation:** <https://nagad-sdk.tashanto.com/docs/> · **Issues:** <https://github.com/iamtashanto/Nagad/issues> · **Releases:** <https://github.com/iamtashanto/Nagad/releases>
 
 ## Why
 
@@ -92,7 +92,7 @@ Refund and webhook/IPN are **not implemented** (no public specification).
 
 ## Security
 
-Read the [security guide and production checklist](https://iamtashanto.github.io/Nagad/docs/security/). Report vulnerabilities privately through GitHub's "Report a vulnerability" form.
+Read the [security guide and production checklist](https://nagad-sdk.tashanto.com/docs/security/). Report vulnerabilities privately through GitHub's "Report a vulnerability" form.
 
 ## License
 
