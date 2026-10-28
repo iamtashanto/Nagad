@@ -65,7 +65,7 @@ Also available: `nagad-server/upstash` (`UpstashRestSessionStore`) and `nagad-se
 ## HTTP handler
 
 ```ts
-import { createWebHandler } from 'nagad-server';
+import { createWebHandler } from 'nagad-server/frameworks';
 const handle = createWebHandler(nagad, {
   basePath: '/api/nagad',
   resolveOrder: async (req, body) => ({ amount, orderId }),
