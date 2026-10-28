@@ -100,3 +100,7 @@ Read the [security guide and production checklist](https://nagad-sdk.tashanto.co
 ## License
 
 MIT
+
+---
+
+Developed by [TA Shanto](https://tashanto.com) · [npm](https://www.npmjs.com/package/nagad-server) · [GitHub](https://github.com/iamtashanto/Nagad)

@@ -59,3 +59,7 @@ React, React Native (with `handleHardwareBackPress` for Android), Vue, Svelte an
 ## License
 
 MIT
+
+---
+
+Developed by [TA Shanto](https://tashanto.com) · [npm](https://www.npmjs.com/package/nagad-client) · [GitHub](https://github.com/iamtashanto/Nagad)
