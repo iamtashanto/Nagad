@@ -1,6 +1,6 @@
 {
   "name": "nagad-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Headless, multi-framework client SDK for Nagad payments",
   "type": "module",
   "main": "./dist/index.cjs",

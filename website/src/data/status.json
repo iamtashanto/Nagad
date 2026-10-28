@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "releaseStage": "first-release",
   "evidenceLevels": {
     "stable": "Verified against the live gateway and covered by automated tests.",

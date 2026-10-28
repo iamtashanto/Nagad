@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 (2026-10-29)
+
+- Package READMEs and npm pages link to the documentation, npm and GitHub, with the developer credit.
+- Documentation: `createWebHandler` is imported from `nagad-server/frameworks`; every documented import is now checked by a test.
+- Website: readable release banner in light mode, npm and GitHub links, removed stale claims. The site is now indexable by search engines.
+- No code changes to `nagad-server` or `nagad-client`.
+
 ## 0.1.0 (2026-10-27)
 
 First non-alpha release of `nagad-server` and `nagad-client`. It is **not yet validated against the live Nagad gateway** (see the feature status in the documentation).
